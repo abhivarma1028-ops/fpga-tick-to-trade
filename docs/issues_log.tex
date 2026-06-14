@@ -1,0 +1,286 @@
+% ============================================================================
+%  HFT Tick-to-Trade FPGA Project — Issues Log
+%  Compile with:  pdflatex issues_log.tex
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% ---- Colours -------------------------------------------------------------
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codekw}{RGB}{0,0,180}
+\definecolor{codecm}{RGB}{0,128,0}
+\definecolor{sev-high}{RGB}{200,0,0}
+\definecolor{sev-med}{RGB}{200,120,0}
+\definecolor{sev-low}{RGB}{0,120,0}
+
+% ---- Code listing style --------------------------------------------------
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecm}\itshape,
+  breaklines=true,
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{gray!40},
+  showstringspaces=false,
+  columns=fullflexible,
+  language=Verilog
+}
+
+% ---- Header / footer -----------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{HFT Tick-to-Trade FPGA}
+\rhead{Issues Log}
+\cfoot{\thepage}
+
+% ---- Severity badge helper ----------------------------------------------
+\newcommand{\sev}[1]{%
+  \ifstrequal{#1}{HIGH}{\textcolor{sev-high}{\textbf{[HIGH]}}}{%
+  \ifstrequal{#1}{MED}{\textcolor{sev-med}{\textbf{[MEDIUM]}}}{%
+  \textcolor{sev-low}{\textbf{[LOW]}}}}}
+\usepackage{etoolbox} % provides \ifstrequal
+
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+
+% ============================================================================
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries HFT Tick-to-Trade FPGA\par}
+\vspace{0.5cm}
+{\LARGE Issues \& Resolutions Log\par}
+\vspace{2cm}
+{\large Abhishek\par}
+\vspace{0.3cm}
+{\large Target: Xilinx Alveo U200 (\texttt{xcu200-fsgd2104-2-e})\par}
+{\large Tooling: Vivado 2025.2 \quad Host: Ubuntu 24.04, 18\,GB RAM (VM)\par}
+\vfill
+{\large Last updated: 12 June 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ----------------------------------------------------------------------------
+\section{Overview}
+This document tracks the engineering issues encountered while bringing up the
+tick-to-trade pipeline (\texttt{itch\_parser} $\rightarrow$
+\texttt{order\_book\_m2} $\rightarrow$ \texttt{strategy\_imbalance} $\rightarrow$
+\texttt{latency\_counter}) through Xilinx Vivado synthesis. Each entry records
+the \textbf{symptom}, the \textbf{evidence}, the \textbf{root cause}, and the
+\textbf{resolution / status}.
+
+\begin{center}
+\begin{longtable}{@{}clll@{}}
+\toprule
+\textbf{\#} & \textbf{Issue} & \textbf{Severity} & \textbf{Status} \\
+\midrule
+\endhead
+1 & Synthesis exhausts RAM; order book not inferring BRAM & \sev{HIGH}   & \textbf{Fixed} (distributed RAM) \\
+2 & Vivado native crash during synthesis (\texttt{hs\_err\_pid}) & \sev{HIGH}   & Resolved by \#1 \\
+3 & XDC constraint errors in \texttt{top.xdc} (lines 31--32)    & \sev{MED}    & \textbf{Fixed} \\
+4 & Assorted synthesis warnings (set/reset, unconnected ports) & \sev{LOW}    & Cosmetic / review \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% ----------------------------------------------------------------------------
+\section{Issue \#1 — Synthesis exhausts RAM; order book stored as flip-flops instead of BRAM \sev{HIGH}}
+
+\subsection{Symptom}
+A batch synthesis run (\texttt{synth\_design -top tick\_to\_trade\_top -part
+xcu200-fsgd2104-2-e}) ran the VM out of memory. GNOME System Monitor showed
+\textbf{18.0\,GB of 18.4\,GB (97.7\%) used}, swap climbing past 2.3\,GB, and the
+disk pinned at $\sim$560\,MB/s (swap thrashing, not useful work). The run was
+manually interrupted.
+
+\subsection{Evidence}
+From \texttt{Vivado/synth\_batch.log}:
+\begin{lstlisting}[language=]
+WARNING: [Synth 8-11357] Potential Runtime issue for 3D-RAM or RAM from
+         Record/Structs for RAM entries_reg with 33280 registers
+...
+2 Input 1 Bit Muxes := 2218
+5 Input 1 Bit Muxes := 521
+...
+Finished Cross Boundary and Area Optimization : elapsed = 00:14:51  free physical = 5393
+Finished Applying XDC Timing Constraints      : free physical = 1690
+Start Timing Optimization
+INFO: [Common 17-41] Interrupt caught. Command should exit soon.
+wait_on_runs: ... free physical = 167          <- 167 MB RAM left
+\end{lstlisting}
+A single optimization phase ran for $\sim$15 minutes, and free physical RAM fell
+from $\sim$10\,GB to \textbf{167\,MB} before the interrupt.
+
+\subsection{Root cause}
+The order book stores 256 orders, each a 130-bit packed struct
+($256 \times 130 = 33{,}280$ bits). Vivado mapped this to \textbf{33,280
+individual flip-flops} plus a large read-multiplexer tree (the 2{,}218 + 521
+muxes above) instead of a Block RAM. Building and optimizing that fabric is what
+caused the runtime and memory blow-up.
+
+The array fails BRAM inference because the reset branch clears every element at
+once, which Block RAM physically cannot do:
+\begin{lstlisting}
+// rtl/order_book_m2.sv : 107-108  (inside the asynchronous reset)
+for (int i = 0; i < ORDER_DEPTH; i++)
+    entries[i] <= '0;
+\end{lstlisting}
+Seeing a requirement to reset all contents simultaneously, the synthesizer
+falls back from BRAM to flip-flops.
+
+\subsection{Resolution / Status \textnormal{(\textbf{fixed} 12 June 2026)}}
+Applied to \texttt{rtl/order\_book\_m2.sv}:
+\begin{enumerate}[leftmargin=*]
+  \item Removed the \texttt{valid} field from the \texttt{order\_entry\_t} struct
+        and the whole-array async reset loop, so the payload array
+        \texttt{entries[]} no longer needs clearing on reset.
+  \item Added a separate resettable bit-vector
+        \texttt{logic [ORDER\_DEPTH-1:0] entry\_valid;} (256 FFs) — a slot's
+        contents are trusted only when its valid bit is set, so the payload
+        never needs a reset.
+  \item Kept reads \emph{combinational} (0-cycle) so no read latency is added to
+        this latency-critical pipeline. The payload therefore infers
+        \textbf{distributed RAM (LUTRAM)} rather than block RAM; true BRAM was
+        declined because it would require synchronous reads and an FSM pipeline
+        change (+1 clock per access). See trade-off note below.
+\end{enumerate}
+Effect: storage drops from 33{,}280 flip-flops + huge mux trees to LUTRAM
+$+$ 256 valid FFs; the multi-minute optimization phase and the OOM disappear.
+
+\textbf{Verification:} all 15 \texttt{tb\_order\_book\_m2} and 4
+\texttt{tb\_tick\_to\_trade} cocotb tests pass under Verilator with cycle
+behaviour unchanged. (On a clean Verilator build pass
+\texttt{EXTRA\_ARGS="-Wno-fatal"} to get past the pre-existing PINMISSING
+warning from Issue \#4.)
+
+\textbf{Trade-off note:} for true block RAM (\texttt{RAMB36}), convert all reads
+(the C/D/E lookup and the RESCAN stream) to synchronous and add read-wait
+pipeline stages; this adds one clock of read latency per access. Revisit if LUT
+pressure on the target device becomes a concern.
+
+% ----------------------------------------------------------------------------
+\section{Issue \#2 — Vivado native crash during synthesis \sev{HIGH}}
+
+\subsection{Symptom}
+An earlier (GUI) synthesis attempt aborted, leaving eight JVM/native crash dumps
+in the project root (\texttt{hs\_err\_pid75146.log}, \texttt{75251},
+\texttt{75357}, \texttt{75462}, \dots).
+
+\subsection{Evidence}
+\begin{lstlisting}[language=]
+# An unexpected error has occurred (6) Aborted
+...
+libstdc++.so.6 ... _ZSt10unexpectedv
+libxv_common.so ... hdi::tcltasks::detail::collection_wrapper_base::~...
+libxv_synth.so  ... HARTSInfo::periodicalDetect()
+\end{lstlisting}
+At GUI launch \texttt{vivado.log} reported \texttt{Available Virtual : 503 MB} —
+the machine was already memory-starved before the crash. Multiple helper
+synthesis processes aborted together (one dump per PID).
+
+\subsection{Root cause}
+A native abort (signal 6) inside the synthesis worker, occurring under severe
+memory pressure. Given the timing and the near-zero available virtual memory,
+this is most plausibly the GUI-side manifestation of Issue \#1: the same order
+book FF/mux explosion drove the process out of memory and Vivado aborted rather
+than exiting cleanly.
+
+\subsection{Resolution / Status}
+Treat as resolved-by-\#1: once the order book infers BRAM the memory pressure
+disappears. If native aborts persist afterward, capture a fresh
+\texttt{hs\_err\_pid} and investigate the Vivado install separately. The stale
+crash dumps can be deleted from the project root.
+
+% ----------------------------------------------------------------------------
+\section{Issue \#3 — XDC constraint errors in \texttt{top.xdc} \sev{MED}}
+
+\subsection{Symptom}
+Two CRITICAL WARNINGs every run while parsing the timing constraints, meaning
+some constraints are silently dropped.
+
+\subsection{Evidence}
+\begin{lstlisting}[language=]
+CRITICAL WARNING: [Designutils 20-1307] Command 'remove_from_collection' is
+   not supported in the xdc constraint file. [rtl/top.xdc:31]
+CRITICAL WARNING: [Common 17-1548] Command failed: can't read "in_ports":
+   no such variable [rtl/top.xdc:32]
+\end{lstlisting}
+The offending lines:
+\begin{lstlisting}[language=]
+# rtl/top.xdc : 30-32
+set in_ports [remove_from_collection [all_inputs] [get_ports clk]]
+set_input_delay -clock clk $IO_BUDGET $in_ports
+\end{lstlisting}
+
+\subsection{Root cause}
+\texttt{remove\_from\_collection} is a Tcl/XDC command not permitted inside a
+pure \texttt{.xdc} constraint file. Line 31 therefore fails, \texttt{in\_ports}
+is never set, and line 32 then fails with ``no such variable'' — so the input
+delay on all non-clock ports is never applied.
+
+\subsection{Resolution / Status \textnormal{(\textbf{fixed} 12 June 2026)}}
+Replaced the \texttt{remove\_from\_collection} line in \texttt{rtl/top.xdc} with
+an XDC-legal \texttt{get\_ports} filter that selects every input port except the
+clock:
+\begin{lstlisting}[language=]
+set_input_delay -clock clk $IO_BUDGET \
+    [get_ports * -filter {DIRECTION == IN && NAME != clk}]
+\end{lstlisting}
+This removes both CRITICAL WARNINGs and ensures the input-delay budget is
+actually applied (previously it was silently dropped).
+
+\textbf{Verification:} the file was sourced under \texttt{tclsh} with the Vivado
+commands stubbed (and \texttt{remove\_from\_collection} stubbed to raise) — it
+now parses cleanly, whereas the old version errored on the unset
+\texttt{in\_ports} variable. The two CRITICAL WARNINGs should be gone on the
+next synthesis run.
+
+% ----------------------------------------------------------------------------
+\section{Issue \#4 — Assorted synthesis warnings \sev{LOW}}
+
+These do not block synthesis but are worth a review pass:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Set/reset same priority} — \texttt{[Synth 8-7137]} on several
+        \texttt{itch\_parser} registers (\texttt{msg\_type\_reg},
+        \texttt{timestamp\_reg}, \texttt{order\_ref\_reg}, \texttt{side\_reg},
+        \texttt{shares\_reg}, \texttt{price\_reg}; lines 139--144). Vivado warns
+        this may cause sim/synth mismatch; clean up the reset coding style.
+  \item \textbf{Unconnected ports} — \texttt{[Synth 8-7129]}:
+        \texttt{m\_axis\_tready} on \texttt{tick\_to\_trade\_top}, and the upper
+        bits of \texttt{s\_axil\_wdata}/\texttt{s\_axil\_wstrb} on
+        \texttt{latency\_counter} have no load.
+  \item \textbf{Constant-driven outputs} — \texttt{[Synth 8-3917]}:
+        \texttt{m\_axis\_tdata[71:65]} tied to constant 0 (upper trade-output
+        bits unused).
+\end{itemize}
+Action: confirm each is intentional (it is normal for unused AXI/AXIS sidebands
+during bring-up); otherwise wire up or trim the interface.
+
+% ----------------------------------------------------------------------------
+\section{Environment notes}
+\begin{itemize}[leftmargin=*]
+  \item Host: \texttt{abhishek-VMware-Virtual-Platform}, Ubuntu 24.04.2,
+        AMD Ryzen 7 4800H, \textbf{18{,}412\,MB} RAM, 12{,}884\,MB swap.
+  \item Tool: Vivado v2025.2 (64-bit), SW build 6299465.
+  \item Target part: \texttt{xcu200-fsgd2104-2-e} (Alveo U200) — a large
+        datacenter device; its part/timing database alone is memory-heavy to
+        load, which compounds Issue \#1.
+\end{itemize}
+
+\end{document}
