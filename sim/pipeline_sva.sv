@@ -127,9 +127,11 @@ module strategy_imbalance_sva #(
         decision_valid |-> (order_size >= BASE_LOT && order_size <= MAX_LOT))
         else $error("[SVA strategy] order_size out of [BASE_LOT, MAX_LOT]");
 
-    // A decision only after the book was valid the previous cycle
+    // A decision only after a valid book snapshot. The strategy is now a
+    // 2-stage pipeline (stage-1 captures the book, stage-2 fires), so the
+    // snapshot the decision is based on was taken two cycles earlier.
     a_needs_book: assert property (@(posedge clk) disable iff (!rst_n)
-        decision_valid |-> $past(book_valid))
+        decision_valid |-> $past(book_valid, 2))
         else $error("[SVA strategy] decision without prior book_valid");
 
     // Coverage: a max-size (capped) order, and both sides traded

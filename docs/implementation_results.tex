@@ -222,6 +222,50 @@ chain, \emph{lengthened} by the 4-way active-symbol output mux. This run pre-dat
 the register fix; the fix has since been applied to \texttt{multi\_symbol\_top}
 too (re-run pending).
 
+\textcolor{rulegray}{\rule{\linewidth}{1pt}}
+
+\section*{Correction 3 --- Run B3 (pipeline strategy + collar reference)}
+
+Analysis of the routed B1/M1 reports showed that registering only the output
+(B2) is necessary but \emph{may not be sufficient}: two structural problems
+remain on the decision cone.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{0.46\linewidth} p{0.46\linewidth}@{}}
+\toprule
+\textbf{Residual issue (from B1/M1 routed paths)} & \textbf{Why it still hurts after B2} \\
+\midrule
+Book\,$\rightarrow$\,\texttt{mid\_price} (add+shift)\,$\rightarrow$ \texttt{risk\_check} collar\,$\rightarrow$\,output. & The collar reference was a live combinational function of the book best price, feeding the risk comparators. \\
+Strategy $\Sigma$(weight$\cdot$size) \emph{and} the 64-bit cross-multiply in one cycle. & Weighted-sum + cross-multiply + compare were one deep cone (route 52--58\%). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Fix (B3):}
+\begin{itemize}\itemsep2pt
+  \item \texttt{strategy\_imbalance} is now a \textbf{2-stage pipeline}: stage~1
+  registers the depth-weighted volumes $w_{bid}/w_{ask}$ and the book snapshot;
+  stage~2 does the cross-multiply + lot sizing + fire decision. This isolates the
+  wide summation from the cross-multiply compare.
+  \item Both tops register the collar reference (book mid) \textbf{2 deep}
+  (\texttt{mid\_r1}/\texttt{mid\_r2}) so the risk comparators start at a flip-flop,
+  not the \texttt{book\,$\rightarrow$\,mid} adder, and stay aligned with the now
+  2-cycle strategy. (Bonus: this also removes a 1-cycle order/mid skew that
+  existed in B2.)
+\end{itemize}
+
+\noindent\textbf{Cost:} \textbf{+1 cycle} (tick-to-trade 40\,$\rightarrow$\,41
+cycles, 200\,$\rightarrow$\,\textbf{205\,ns}). The split halves the longest
+combinational segment on both the strategy and risk sub-paths.
+
+\noindent\textbf{Status:} implemented and verified in simulation ---
+\textbf{95/95 cocotb tests pass}, lint clean, tick-to-trade measured at
+\textbf{205\,ns}, multi-symbol decisions still correctly attributed. \emph{Not
+yet re-synthesised} --- re-run synth+impl on \texttt{tick\_to\_trade\_top}
+(then \texttt{multi\_symbol\_top}) to populate the real B3 timing and confirm
+200\,MHz closure.
+
 \section*{Run history}
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
@@ -233,6 +277,7 @@ B0 & registered FF order-book array          & $-2.373$\,ns & \fail\ (route-boun
 B1 & \texttt{entries[]} $\to$ BRAM           & $-4.563$\,ns & \fail\ (combinational chain) \\
 M1 & multi-symbol $\times$4 (BRAM, comb.\ risk) & $-5.362$\,ns & \fail\ (chain + sym mux) \\
 B2 & register risk/decision stage            & TBD          & RTL done (200\,ns sim); \emph{re-run synth} \\
+B3 & pipeline strategy (2-stage) + collar ref & TBD          & RTL done (205\,ns sim, 95/95); \emph{re-run synth} \\
 \bottomrule
 \end{tabular}
 \end{center}

@@ -112,12 +112,25 @@ module multi_symbol_top #(
     logic [31:0] risk_price_c, risk_size_c;
     logic        risk_reject_c;
     logic [2:0]  risk_reason_c;
-    wire  [31:0] mid_price = (bbid_p + bask_p) >> 1;
+
+    // Pipeline the collar reference (book mid) 2 deep so the risk comparators
+    // start from a register, not the long book→mid add — aligned with the now
+    // 2-cycle strategy. (B3 correction; matches tick_to_trade_top.)
+    logic [31:0] mid_r1, mid_r2;
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            mid_r1 <= '0;
+            mid_r2 <= '0;
+        end else begin
+            mid_r1 <= (bbid_p + bask_p) >> 1;
+            mid_r2 <= mid_r1;
+        end
+    end
 
     risk_check u_risk (
         .clk(clk), .rst_n(rst_n), .halt(halt),
         .in_valid(dec_valid), .in_action(action),
-        .in_price(order_price), .in_size(order_size), .ref_price(mid_price),
+        .in_price(order_price), .in_size(order_size), .ref_price(mid_r2),
         .out_valid(risk_valid_c), .out_action(risk_action_c),
         .out_price(risk_price_c), .out_size(risk_size_c),
         .reject_valid(risk_reject_c), .reject_reason(risk_reason_c)
@@ -128,7 +141,7 @@ module multi_symbol_top #(
     // that limited timing; costs +1 cycle of latency. (Matches tick_to_trade_top.)
     logic        risk_valid, risk_action;
     logic [31:0] risk_price, risk_size;
-    logic [7:0]  decision_sym_r;
+    logic [7:0]  sym_d1, sym_d2, decision_sym_r;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -138,6 +151,8 @@ module multi_symbol_top #(
             risk_size      <= '0;
             risk_reject    <= 1'b0;
             risk_reason    <= 3'd0;
+            sym_d1         <= '0;
+            sym_d2         <= '0;
             decision_sym_r <= '0;
         end else begin
             risk_valid     <= risk_valid_c;
@@ -146,7 +161,11 @@ module multi_symbol_top #(
             risk_size      <= risk_size_c;
             risk_reject    <= risk_reject_c;
             risk_reason    <= risk_reason_c;
-            decision_sym_r <= active_sym;
+            // Delay the symbol tag to align with the now 2-cycle strategy so
+            // each decision is attributed to the symbol it was computed from.
+            sym_d1         <= active_sym;
+            sym_d2         <= sym_d1;
+            decision_sym_r <= sym_d2;
         end
     end
 

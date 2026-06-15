@@ -149,7 +149,20 @@ module tick_to_trade_top (
     logic [31:0] risk_price_c, risk_size_c;
     logic        risk_reject_c;
     logic [2:0]  risk_reason_c;
-    wire  [31:0] mid_price = (bbid_p + bask_p) >> 1;
+
+    // Pipeline the collar reference (book mid) 2 deep so the risk comparators
+    // start from a register, not the long book→mid add. Depth 2 keeps it aligned
+    // with the strategy decision (now book→decision = 2 cycles). (B3 correction.)
+    logic [31:0] mid_r1, mid_r2;
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            mid_r1 <= '0;
+            mid_r2 <= '0;
+        end else begin
+            mid_r1 <= (bbid_p + bask_p) >> 1;
+            mid_r2 <= mid_r1;
+        end
+    end
 
     risk_check u_risk (
         .clk          (clk),
@@ -159,7 +172,7 @@ module tick_to_trade_top (
         .in_action    (action),
         .in_price     (order_price),
         .in_size      (order_size),
-        .ref_price    (mid_price),
+        .ref_price    (mid_r2),
         .out_valid    (risk_valid_c),
         .out_action   (risk_action_c),
         .out_price    (risk_price_c),
