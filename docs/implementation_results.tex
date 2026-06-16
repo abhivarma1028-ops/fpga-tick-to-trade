@@ -50,18 +50,17 @@ M1 & \texttt{multi\_symbol\_top}   & $-5.362$ & 10{,}899 & \fail\ chain + 4-way 
 B2 & \texttt{tick\_to\_trade\_top} & $-2.217$ & 87       & \fail\ I/O artifact; datapath closed \\
 B3 & \texttt{tick\_to\_trade\_top} & ---       & ---      & \pending\ RTL done; synth not run \\
 B4 & \texttt{tick\_to\_trade\_top} & $-0.578$ & 47       & \fail\ FF$\to$OBUF only; logic \pass \\
-\textbf{B5} & \texttt{tick\_to\_trade\_top} & \textit{TBD} & \textit{TBD} & \pending\ XDC updated; \textbf{re-run needed} \\
+\textbf{B5} & \texttt{tick\_to\_trade\_top} & \textcolor{okgreen}{\textbf{+0.105}} & \textcolor{okgreen}{\textbf{0}} & \pass\ \textbf{200\,MHz CLOSED} \\
 \textbf{M2} & \texttt{multi\_symbol\_top}   & \textit{TBD} & \textit{TBD} & \pending\ XDC updated; \textbf{re-run needed} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Key finding:} The trading datapath
-(ITCH parse $\to$ BRAM book $\to$ strategy $\to$ risk $\to$ decision FF)
-meets 200\,MHz in both designs. All remaining timing violations are
-out-of-context (OOC) clock-insertion artifacts on FF$\to$OBUF I/O boundary
-paths. \texttt{rtl/top.xdc} (B5) now false-paths the entire CL/SH boundary;
-the next Vivado run (B5/M2) is expected to report \textbf{0 failing endpoints}.
+\noindent\textbf{Key finding:} \texttt{tick\_to\_trade\_top} \textbf{closes at
+200\,MHz} (B5, WNS\,=\,+0.105\,ns, 0 failing endpoints, measured 2026-06-16).
+The trading datapath (ITCH parse $\to$ BRAM book $\to$ strategy $\to$ risk $\to$
+decision FF) meets timing with margin. \texttt{multi\_symbol\_top} re-run pending
+with the same B5 XDC.
 
 \textcolor{rulegray}{\rule{\linewidth}{1pt}}
 
@@ -83,8 +82,11 @@ Flow         & \texttt{synth\_design} $\to$ \texttt{opt} $\to$ \texttt{place} $\
 
 \textcolor{rulegray}{\rule{\linewidth}{1pt}}
 
-% ─── B4 MEASURED: tick_to_trade_top ─────────────────────────────────────────
-\section*{Run B4 (Latest Measured) \textendash{} \texttt{tick\_to\_trade\_top}}
+% ─── B5 MEASURED: tick_to_trade_top ─────────────────────────────────────────
+\section*{Run B5 (Latest Measured \textendash{} \textcolor{okgreen}{\textbf{TIMING CLOSED}}) \textendash{} \texttt{tick\_to\_trade\_top}}
+
+\noindent Synthesised and implemented locally on 2026-06-16 with the B5 XDC
+(false-path all CL/SH boundary ports). \textbf{0 failing endpoints. 200\,MHz closed.}
 
 \subsection*{Utilisation}
 \begin{center}
@@ -93,10 +95,10 @@ Flow         & \texttt{synth\_design} $\to$ \texttt{opt} $\to$ \texttt{place} $\
 \toprule
 \textbf{Resource} & \textbf{Synth} & \textbf{Placed} & \textbf{Available} & \textbf{\%} \\
 \midrule
-CLB LUTs (total)     & 7{,}201 & 7{,}043 & 1{,}182{,}240 & 0.60 \\
-\quad as Logic       &         & 6{,}875 &               & 0.58 \\
+CLB LUTs (total)     & 7{,}202 & 7{,}046 & 1{,}182{,}240 & 0.60 \\
+\quad as Logic       &         & 6{,}878 &               & 0.58 \\
 \quad as Distrib RAM &         &   168   &               & 0.01 \\
-CLB Registers (FF)   & 4{,}570 & 4{,}576 & 2{,}364{,}480 & 0.19 \\
+CLB Registers (FF)   & 4{,}570 & 4{,}573 & 2{,}364{,}480 & 0.19 \\
 CARRY8               &         &   295   &   147{,}780   & 0.20 \\
 F7 Muxes             &         &   286   &   591{,}120   & 0.05 \\
 F8 Muxes             &         &   138   &   295{,}560   & 0.05 \\
@@ -113,84 +115,55 @@ Unique Control Sets  &         &   115   &   295{,}560   & 0.04 \\
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}l r@{}}
 \toprule
-Total logical nets      & 15{,}458 \\
-Routable nets           &  9{,}991 \\
-Fully routed            &  9{,}991 \\
+Total logical nets      & 15{,}451 \\
+Routable nets           &  9{,}978 \\
+Fully routed            &  9{,}978 \\
 Routing errors          &  \textbf{0} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\subsection*{Timing \textendash{} \fail\ (47 FF$\to$OBUF I/O endpoints)}
+\subsection*{Timing \textendash{} \pass\ at 200\,MHz}
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}l r@{}}
 \toprule
 \textbf{Metric} & \textbf{Value} \\
 \midrule
-Worst Negative Slack (WNS) & \textcolor{badred}{$-0.578$\,ns} \\
-Total Negative Slack (TNS) & $-17.526$\,ns \\
-Failing endpoints (setup)   & 47 / 10{,}062 \\
-Failing endpoints (hold)    & 0 / 10{,}062 \quad \textcolor{okgreen}{\checkmark} \\
+\textbf{Worst Negative Slack (WNS)} & \textcolor{okgreen}{\textbf{+0.105\,ns}} \\
+Total Negative Slack (TNS)  & 0.000\,ns \\
+Failing endpoints (setup)   & \textcolor{okgreen}{\textbf{0}} / 9{,}994 \\
+Failing endpoints (hold)    & 0 / 9{,}994 \quad \textcolor{okgreen}{\checkmark} \\
 Worst Hold Slack (WHS)      & $+0.008$\,ns \quad \textcolor{okgreen}{\checkmark} \\
 Pulse Width Slack (WPWS)    & $+1.958$\,ns \quad \textcolor{okgreen}{\checkmark} \\
-\midrule
-Internal reg$\to$reg timing & \textcolor{okgreen}{\textbf{meets 200\,MHz}} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Top 10 failing paths} (from \texttt{report\_timing\_summary -max\_paths 10}):
-\begin{center}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}r l r l@{}}
-\toprule
-\textbf{Slack (ns)} & \textbf{Destination port} & \textbf{Levels} & \textbf{Cells} \\
-\midrule
-$-0.578$ & \texttt{s\_axis\_tready}   & 2 & LUT3 + OBUF \\
-$-0.461$ & \texttt{risk\_reason[0]}   & 1 & OBUF \\
-$-0.439$ & \texttt{m\_axis\_tdata[4]} & 1 & OBUF \\
-$-0.433$ & \texttt{m\_axis\_tdata[3]} & 1 & OBUF \\
-$-0.431$ & \texttt{m\_axis\_tdata[6]} & 1 & OBUF \\
-$-0.428$ & \texttt{m\_axis\_tdata[5]} & 1 & OBUF \\
-$-0.424$ & \texttt{m\_axis\_tdata[2]} & 1 & OBUF \\
-$-0.418$ & \texttt{m\_axis\_tdata[1]} & 1 & OBUF \\
-$-0.408$ & \texttt{m\_axis\_tdata[57]}& 1 & OBUF \\
-$-0.407$ & \texttt{m\_axis\_tdata[61]}& 1 & OBUF \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent\textbf{Worst failing path detail:}
+\noindent\textbf{Tightest path (WNS = +0.105\,ns):}
 \begin{center}
 \small
 \renewcommand{\arraystretch}{1.15}
 \begin{tabular}{@{}l l@{}}
 \toprule
-Source          & \texttt{u\_book/state\_reg[0]/C} \;(FDCE, SLICE\_X112Y385) \\
-Destination     & \texttt{s\_axis\_tready} \;(OBUF output, pin BA24) \\
-Logic levels    & 2 \;(LUT3 + OBUF) \\
-Data delay      & 2.284\,ns \;(logic 1.088\,ns\;47.6\% + route 1.196\,ns\;52.4\%) \\
-Output delay    & 0.500\,ns \\
-BUFG insertion  & 2.658\,ns \;(BUFGCE\_X1Y120, fanout\,=\,4{,}752, routed\,1.714\,ns) \\
-Required time   & $5.000 - 0.135\mathrm{(jitter)} - 0.500\mathrm{(I/O)} - 2.658\mathrm{(skew)} = 4.365$\,ns \\
-Arrival time    & $4.942$\,ns \\
-Slack           & \textcolor{badred}{$-0.578$\,ns} \\
+Source      & \texttt{u\_lat/free\_cnt\_reg[8]/C} \;(latency counter FF) \\
+Destination & \texttt{u\_lat/hist\_reg[52][17]/D} \;(histogram register) \\
+Note        & Internal reg$\to$reg path; I/O boundary excluded by B5 false-paths \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Root cause:} Every one of the 47 violations is a FF$\to$OBUF path
-with 1--2 logic levels and \emph{zero} combinational logic on the trading datapath.
-The OOC global BUFG (BUFGCE\_X1Y120, clock root X4Y6) fans out to 4{,}752 loads,
-producing 2.658\,ns clock-insertion delay. This delay cancels on internal
-reg$\to$reg paths (same insertion on source and destination) but is charged in full
-on FF$\to$output-pin paths where the destination clock delay is 0. In the real AWS
-F1 Shell build the clock is placed in clock regions (insertion $\sim$0.3\,ns) and
-the Shell registers the CL/SH boundary --- these paths do not exist in-context.
-The B5 XDC \texttt{set\_false\_path} on all output ports removes them from STA
-evaluation entirely.
+\subsection*{Power}
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l r@{}}
+\toprule
+Total on-chip power & 2.598\,W \\
+Dynamic             & 0.127\,W \\
+Static              & 2.470\,W \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection*{Power}
 \begin{center}

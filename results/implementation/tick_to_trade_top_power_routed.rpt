@@ -1,8 +1,8 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-| Date             : Tue Jun 16 01:11:08 2026
-| Host             : VM running 64-bit Ubuntu 26.04 LTS
+| Date             : Tue Jun 16 11:38:57 2026
+| Host             : abhishek-VMware-Virtual-Platform running 64-bit Ubuntu 24.04.2 LTS
 | Command          : report_power -file tick_to_trade_top_power_routed.rpt -pb tick_to_trade_top_power_summary_routed.pb -rpx tick_to_trade_top_power_routed.rpx
 | Design           : tick_to_trade_top
 | Device           : xcu200-fsgd2104-2-e
@@ -30,7 +30,7 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 2.597        |
+| Total On-Chip Power (W)  | 2.598        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
 | Dynamic (W)              | 0.127        |
@@ -52,19 +52,19 @@ Table of Contents
 +--------------------------+-----------+----------+-----------+-----------------+
 | On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
 +--------------------------+-----------+----------+-----------+-----------------+
-| Clocks                   |     0.028 |        3 |       --- |             --- |
-| CLB Logic                |     0.018 |    13663 |       --- |             --- |
-|   LUT as Logic           |     0.016 |     6875 |   1182240 |            0.58 |
+| Clocks                   |     0.027 |        3 |       --- |             --- |
+| CLB Logic                |     0.019 |    13656 |       --- |             --- |
+|   LUT as Logic           |     0.016 |     6878 |   1182240 |            0.58 |
 |   CARRY8                 |     0.001 |      295 |    147780 |            0.20 |
-|   LUT as Distributed RAM |    <0.001 |      168 |    591840 |            0.03 |
-|   Register               |    <0.001 |     4580 |   2364480 |            0.19 |
+|   LUT as Distributed RAM |     0.001 |      168 |    591840 |            0.03 |
+|   Register               |    <0.001 |     4573 |   2364480 |            0.19 |
 |   Others                 |     0.000 |       19 |       --- |             --- |
 |   F7/F8 Muxes            |     0.000 |      424 |   1182240 |            0.04 |
-| Signals                  |     0.022 |     9987 |       --- |             --- |
-| Block RAM                |     0.007 |      1.5 |      2160 |            0.07 |
-| I/O                      |     0.051 |      157 |       676 |           23.22 |
+| Signals                  |     0.023 |     9974 |       --- |             --- |
+| Block RAM                |     0.008 |      1.5 |      2160 |            0.07 |
+| I/O                      |     0.052 |      157 |       676 |           23.22 |
 | Static Power             |     2.470 |          |           |                 |
-| Total                    |     2.597 |          |           |                 |
+| Total                    |     2.598 |          |           |                 |
 +--------------------------+-----------+----------+-----------+-----------------+
 
 
@@ -74,7 +74,7 @@ Table of Contents
 +------------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source           | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +------------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint           |       0.850 |     0.896 |       0.088 |      0.808 |       NA    | Unspecified | NA         |
+| Vccint           |       0.850 |     0.897 |       0.089 |      0.808 |       NA    | Unspecified | NA         |
 | Vccint_io        |       0.850 |     0.264 |       0.001 |      0.262 |       NA    | Unspecified | NA         |
 | Vccbram          |       0.850 |     0.016 |       0.000 |      0.015 |       NA    | Unspecified | NA         |
 | Vccaux           |       1.800 |     0.651 |       0.000 |      0.651 |       NA    | Unspecified | NA         |
@@ -148,7 +148,7 @@ Table of Contents
 +-------------------+-----------+
 | tick_to_trade_top |     0.127 |
 |   u_book          |     0.049 |
-|   u_lat           |     0.018 |
+|   u_lat           |     0.019 |
 |   u_parser        |     0.003 |
 |   u_strategy      |     0.002 |
 +-------------------+-----------+
