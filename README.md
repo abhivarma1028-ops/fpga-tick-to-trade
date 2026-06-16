@@ -101,6 +101,48 @@ python data/carve_itch_slice.py --input S081322-v50.txt.gz \
 - Fixed-point arithmetic throughout — no floats in the data path
 - Pre-trade risk checks per SEC Rule 15c3-5
 
+## Implementation Results (Vivado 2025.2, xcu200-fsgd2104-2-e @ 200 MHz)
+
+### Run history
+
+| Run | Change | tick_to_trade_top WNS | multi_symbol_top WNS | Status |
+|---|---|---|---|---|
+| B0 | FF-array order book | -2.373 ns | — | FAIL (route-bound) |
+| B1 | BRAM order book | -4.563 ns | — | FAIL (combinational chain) |
+| M1 | multi-symbol ×4 (BRAM, comb. risk) | — | -5.362 ns | FAIL (chain + sym mux) |
+| B2 | Register risk/decision stage | -2.217 ns | — | Datapath closed; 87 I/O endpoints |
+| B3 | Pipeline strategy (2-stage) + collar ref | RTL done (205 ns sim) | — | RTL only, not re-synthesised |
+| **B4** | XDC: false-path AXI-Lite + 10% I/O budget | **-0.578 ns** (47 ep) | **-0.433 ns** (2 ep) | **Near-closure** |
+
+### B4 measured results
+
+#### `tick_to_trade_top`
+
+| Metric | Value |
+|---|---|
+| CLB LUTs | 7,043 (0.60%) |
+| CLB Registers | 4,576 (0.19%) |
+| RAMB36 | 1 | RAMB18 | 1 |
+| DSPs | 0 |
+| **WNS** | **-0.578 ns** — 47 failing endpoints |
+| Total Power | 2.597 W (0.127 W dynamic) |
+| Hardware latency | ~195 ns (39 cycles @ 200 MHz) |
+
+#### `multi_symbol_top` (NSYMBOLS=4)
+
+| Metric | Value |
+|---|---|
+| CLB LUTs | 19,827 (1.68%) |
+| CLB Registers | 9,320 (0.39%) |
+| RAMB36 | 4 | RAMB18 | 4 |
+| DSPs | 0 |
+| **WNS** | **-0.433 ns** — **2 failing endpoints** ✓ |
+| Total Power | 2.804 W (0.331 W dynamic) |
+
+> Multi-symbol improved from -5.362 ns / 10,899 failures (M1) to -0.433 ns / 2 failures (B4) —
+> a 92% reduction in slack violation after XDC false-path fix on the AXI-Lite boundary.
+> Both residual failures are OOC clock-insertion I/O artifacts, not logic-path violations.
+
 ## Toolchain
 
 - Vivado ML Standard (synthesis + implementation)

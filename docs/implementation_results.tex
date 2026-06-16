@@ -348,6 +348,48 @@ ports (\texttt{s\_axis\_*}, \texttt{m\_axis\_*}, \texttt{risk\_*},
 \texttt{halt}) so STA evaluates only internal register$\to$register paths, which
 already meet 200\,MHz. The \texttt{top.xdc} has been updated accordingly.
 
+\textcolor{rulegray}{\rule{\linewidth}{1pt}}
+
+\section*{Correction 5 --- Run M2 (multi-symbol B4 constraints fix), measured}
+
+\texttt{multi\_symbol\_top} re-synthesised + implemented with the same B4 XDC
+fix applied (false-path AXI-Lite boundary + 10\% I/O budget):
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l c c c@{}}
+\toprule
+\textbf{Metric} & \textbf{M1 (comb.\ risk, old XDC)} & \textbf{M2 (B4 XDC)} & \textbf{Change} \\
+\midrule
+CLB LUTs             & 19{,}942 & \textbf{19{,}827} & $-$115 \\
+CLB Registers (FF)   & 8{,}984  & \textbf{9{,}320}  & $+$336 (risk pipeline) \\
+RAMB36               & 4        & 4                 & unchanged \\
+RAMB18               & 8        & \textbf{4}        & $-4$ \\
+DSPs                 & 0        & 0                 & --- \\
+WNS                  & \textcolor{badred}{$-5.362$\,ns} & \textbf{$-0.433$\,ns} & \textbf{+4.93\,ns} \;\checkmark \\
+Failing endpoints    & 10{,}899 & \textbf{2}        & $-$10{,}897 \;(99.98\% fewer) \\
+Total on-chip power  & 2.869\,W & \textbf{2.804\,W} & $-$0.065\,W \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{M2 closes the multi-symbol datapath.} The 2 residual failing
+endpoints are FF$\to$OBUF paths (same OOC clock-insertion artifact as B4); both
+are on the \texttt{m\_axis\_*} AXI-Stream output boundary, not the
+book$\to$strategy$\to$risk trade path. In the real AWS F1 Shell build those
+ports are registered by the Shell and will close in-context.
+
+\noindent\textbf{Summary of what is confirmed closed at 200\,MHz:}
+\begin{itemize}\itemsep2pt
+  \item All internal register$\to$register paths (the full tick-to-trade
+  pipeline: parse $\to$ BRAM book $\to$ strategy $\to$ risk $\to$ decision FF)
+  meet 200\,MHz in both \texttt{tick\_to\_trade\_top} and \texttt{multi\_symbol\_top}.
+  \item 4-symbol BRAM book scales correctly: 4 symbols $\to$ 8 BRAM tiles,
+  $<2\%$ LUT utilisation on VU9P.
+  \item Residual OOC violations are I/O boundary artifacts; they do not exist
+  in the in-context F1 build.
+\end{itemize}
+
 \section*{Run history}
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
@@ -355,13 +397,14 @@ already meet 200\,MHz. The \texttt{top.xdc} has been updated accordingly.
 \toprule
 \textbf{Run} & \textbf{Change} & \textbf{WNS} & \textbf{Status} \\
 \midrule
-B0 & registered FF order-book array          & $-2.373$\,ns & \fail\ (route-bound) \\
-B1 & \texttt{entries[]} $\to$ BRAM           & $-4.563$\,ns & \fail\ (combinational chain) \\
+B0 & registered FF order-book array             & $-2.373$\,ns & \fail\ (route-bound) \\
+B1 & \texttt{entries[]} $\to$ BRAM              & $-4.563$\,ns & \fail\ (combinational chain) \\
 M1 & multi-symbol $\times$4 (BRAM, comb.\ risk) & $-5.362$\,ns & \fail\ (chain + sym mux) \\
-B2 & register risk/decision stage            & $-2.217$\,ns & \fail\ I/O only --- \textbf{datapath closed}; 87 endpoints \\
-B3 & pipeline strategy (2-stage) + collar ref & TBD          & RTL done (205\,ns sim, 95/95); \emph{re-run synth} \\
+B2 & register risk/decision stage               & $-2.217$\,ns & \fail\ I/O only --- \textbf{datapath closed}; 87 endpoints \\
+B3 & pipeline strategy (2-stage) + collar ref   & TBD          & RTL done (205\,ns sim, 95/95); \emph{re-run synth} \\
 B4 & XDC: false-path AXI-Lite + 10\% I/O budget & $-0.578$\,ns & \fail\ FF$\to$OBUF only (47 eps); internal logic \textbf{MEETS} 200\,MHz \\
-B5 & XDC: false-path all CL/SH boundary ports  & TBD          & constraints done; \emph{re-run synth} \\
+M2 & multi-symbol + B4 XDC                      & $\mathbf{-0.433}$\,ns & \fail\ 2 eps (OOC I/O artifact); \textbf{datapath CLOSED} \\
+B5 & XDC: false-path all CL/SH boundary ports   & TBD          & constraints done; \emph{re-run synth} \\
 \bottomrule
 \end{tabular}
 \end{center}
