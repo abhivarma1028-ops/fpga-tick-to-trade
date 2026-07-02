@@ -63,3 +63,27 @@ overlay/*.hwh
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
+
+# AWS FPGA HDK vendor clone (1.4GB, own .git) — never commit; MM CL mirrored in f2/cl_market_maker/
+aws-fpga/
+# Vivado/Questa scratch + machine-local
+.cxl/
+.cxl.ip/
+.cxl.questasim.version
+*.bak
+clockInfo.txt
+modelsim.ini
+vish_stacktrace.vstf
+# transient live-monitor state (regenerated each run)
+reports/run_state.json
+# gate-level sim: generated simlibs/netlists/db (keep only *.tcl/*.sv/*.md sources)
+gatesim/simlib/
+gatesim/xsim.dir/
+gatesim/*.sdf
+gatesim/*.qdb
+gatesim/*.wdb
+gatesim/*.pb
+gatesim/*.jou
+gatesim/*.log
+gatesim/xelab.*
+gatesim/xvlog.*

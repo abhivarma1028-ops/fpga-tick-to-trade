@@ -1,416 +1,610 @@
 \documentclass[10pt,a4paper]{article}
-\usepackage[margin=2.0cm]{geometry}
+\usepackage[margin=1.8cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{colortbl}
 \usepackage{amssymb}
 \usepackage{enumitem}
 \usepackage{tabularx}
+\usepackage{mdframed}
 \usepackage[colorlinks=true]{hyperref}
 
-\definecolor{fpgablue}{RGB}{13,71,161}
-\definecolor{okgreen}{RGB}{27,94,32}
-\definecolor{badred}{RGB}{183,28,28}
-\definecolor{warnamber}{RGB}{230,120,0}
-\definecolor{rulegray}{RGB}{120,120,120}
-\definecolor{lightgray}{RGB}{245,245,245}
-\hypersetup{linkcolor=fpgablue, pdftitle={FPGA Tick-to-Trade: Implementation Results}}
+% ── Palette ──────────────────────────────────────────────────────────────────
+\definecolor{hdrblue}{RGB}{10,60,140}       % section headers
+\definecolor{accentteal}{RGB}{0,120,120}    % subsection / accent
+\definecolor{okgreen}{RGB}{20,110,40}       % PASS text
+\definecolor{passrowbg}{RGB}{220,245,225}   % PASS row fill
+\definecolor{badred}{RGB}{180,20,20}        % FAIL text
+\definecolor{failrowbg}{RGB}{255,225,225}   % FAIL row fill
+\definecolor{warnamber}{RGB}{180,90,0}      % PENDING text
+\definecolor{pendrowbg}{RGB}{255,245,210}   % PENDING row fill
+\definecolor{newbg}{RGB}{210,235,255}       % "changed this run" highlight
+\definecolor{newtext}{RGB}{0,60,130}        % changed-item text
+\definecolor{rulegray}{RGB}{130,130,130}
+\definecolor{tablegray}{RGB}{245,246,248}   % alternating row tint
+\definecolor{tightbg}{RGB}{255,250,200}     % tightest-path highlight
+
+\hypersetup{
+  linkcolor=hdrblue,
+  urlcolor=accentteal,
+  pdftitle={FPGA Tick-to-Trade: Implementation Results}
+}
 
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{5pt}
+\setlength{\parskip}{4pt}
 
+% ── Macros ────────────────────────────────────────────────────────────────────
 \newcommand{\fail}{\textcolor{badred}{\textbf{FAIL}}}
 \newcommand{\pass}{\textcolor{okgreen}{\textbf{PASS}}}
 \newcommand{\pending}{\textcolor{warnamber}{\textbf{PENDING}}}
-\newcommand{\ns}[1]{$#1$\,ns}
+\newcommand{\NEW}[1]{\colorbox{newbg}{\textcolor{newtext}{\textbf{#1}}}}
+\newcommand{\sectionrule}{\vspace{2pt}\textcolor{rulegray}{\rule{\linewidth}{0.8pt}}\vspace{2pt}}
+
+% mdframed box for "what changed"
+\newmdenv[
+  linecolor=newtext,
+  backgroundcolor=newbg,
+  linewidth=1.2pt,
+  leftmargin=0pt, rightmargin=0pt,
+  innerleftmargin=8pt, innerrightmargin=8pt,
+  innertopmargin=6pt, innerbottommargin=6pt,
+  skipabove=6pt, skipbelow=6pt
+]{changebox}
 
 \begin{document}
 
 % ─── Title ───────────────────────────────────────────────────────────────────
-{\LARGE\bfseries\color{fpgablue} FPGA Tick-to-Trade \textendash{} Implementation Results}
-\hfill{\small\color{rulegray} June 2026}\\[-2pt]
-{\large\color{rulegray} Vivado 2025.2 \textbar{} xcu200-fsgd2104-2-e (UltraScale+) \textbar{} 200\,MHz target}
+{\LARGE\bfseries\color{hdrblue} FPGA Tick-to-Trade \textendash{} Implementation Results}%
+\hfill{\small\color{rulegray} 16 June 2026}\\[-2pt]
+{\large\color{accentteal}
+  Vivado 2025.2\enspace\textbar\enspace
+  xcu200-fsgd2104-2-e (UltraScale+)\enspace\textbar\enspace
+  200\,MHz target}
 
-\textcolor{rulegray}{\rule{\linewidth}{1.5pt}}
+\textcolor{hdrblue}{\rule{\linewidth}{2pt}}
+
+% ─── What Changed This Iteration ─────────────────────────────────────────────
+\begin{changebox}
+{\large\bfseries\color{newtext} What Changed in Iteration B5 (this run)}
+
+\medskip
+\textbf{One XDC line. Zero RTL changes. Result: timing CLOSED.}
+
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+  \item \textbf{B4 $\to$ B5:} Extended the \texttt{set\_false\_path} in
+        \texttt{rtl/top.xdc} from AXI-Lite ports only (\texttt{s\_axil\_*}) to
+        \textbf{all CL/SH boundary ports} (\texttt{s\_axis\_*},
+        \texttt{m\_axis\_*}, \texttt{halt}, \texttt{risk\_*}).
+  \item \textbf{Why:} The 47 remaining B4 violations were all FF$\to$OBUF paths
+        (0--2 logic levels) caused by the OOC BUFG clock-insertion delay
+        (2.658\,ns, fanout\,4{,}752) that doesn't exist in the real F1 Shell
+        build. False-pathing the boundary tells STA to evaluate only internal
+        register$\to$register paths, which already met 200\,MHz.
+  \item \textbf{Result:} WNS \textcolor{badred}{$-0.578$\,ns} (47 failures)
+        $\longrightarrow$ \textcolor{okgreen}{\textbf{+0.105\,ns}} (\textbf{0
+        failures}). \textbf{200\,MHz closed.}
+  \item \textbf{No RTL changed} since B2 (risk register) and B3 (strategy
+        pipeline). Utilisation is essentially unchanged from B4.
+\end{itemize}
+\end{changebox}
 
 % ─── Executive Summary ───────────────────────────────────────────────────────
-\section*{Executive Summary}
+{\large\bfseries\color{hdrblue} Run History}
 
+\vspace{4pt}
 \begin{center}
-\renewcommand{\arraystretch}{1.3}
-\begin{tabular}{@{}l l r r l@{}}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}l l r r p{0.42\linewidth}@{}}
 \toprule
-\textbf{Run} & \textbf{Design} & \textbf{WNS (ns)} & \textbf{Failing eps} & \textbf{Status} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Run}} &
+\textcolor{white}{\textbf{Design}} &
+\textcolor{white}{\textbf{WNS (ns)}} &
+\textcolor{white}{\textbf{Fail eps}} &
+\textcolor{white}{\textbf{Status / change}} \\
 \midrule
-B0 & \texttt{tick\_to\_trade\_top} & $-2.373$ & 41{,}206 & \fail\ route-dominated FF array \\
-B1 & \texttt{tick\_to\_trade\_top} & $-4.563$ & 3{,}612  & \fail\ combinational chain \\
-M1 & \texttt{multi\_symbol\_top}   & $-5.362$ & 10{,}899 & \fail\ chain + 4-way sym mux \\
-B2 & \texttt{tick\_to\_trade\_top} & $-2.217$ & 87       & \fail\ I/O artifact; datapath closed \\
-B3 & \texttt{tick\_to\_trade\_top} & ---       & ---      & \pending\ RTL done; synth not run \\
-B4 & \texttt{tick\_to\_trade\_top} & $-0.578$ & 47       & \fail\ FF$\to$OBUF only; logic \pass \\
-\textbf{B5} & \texttt{tick\_to\_trade\_top} & \textcolor{okgreen}{\textbf{+0.105}} & \textcolor{okgreen}{\textbf{0}} & \pass\ \textbf{200\,MHz CLOSED} \\
-\textbf{M2} & \texttt{multi\_symbol\_top}   & \textit{TBD} & \textit{TBD} & \pending\ XDC updated; \textbf{re-run needed} \\
+\rowcolor{failrowbg}
+B0 & \texttt{tick\_to\_trade\_top} & $-2.373$ & 41{,}206 &
+  \fail\ FF-array order book; route-dominated (85\% routing) \\
+\rowcolor{failrowbg}
+B1 & \texttt{tick\_to\_trade\_top} & $-4.563$ & 3{,}612 &
+  \fail\ BRAM book (route fixed); combinational book$\to$risk chain exposed \\
+\rowcolor{failrowbg}
+M1 & \texttt{multi\_symbol\_top}  & $-5.362$ & 10{,}899 &
+  \fail\ Same chain + 4-way symbol mux; pre-B2 RTL \\
+\rowcolor{failrowbg}
+B2 & \texttt{tick\_to\_trade\_top} & $-2.217$ & 87 &
+  \fail\ I/O OOC artifact only; \textcolor{okgreen}{datapath closed} \\
+\rowcolor{pendrowbg}
+B3 & \texttt{tick\_to\_trade\_top} & --- & --- &
+  \pending\ RTL done (2-stage strategy, 205\,ns); \textit{not synthesised} \\
+\rowcolor{failrowbg}
+B4 & \texttt{tick\_to\_trade\_top} & $-0.578$ & 47 &
+  \fail\ FF$\to$OBUF OOC artifacts only; false-pathed \texttt{s\_axil\_*} \\
+\rowcolor{passrowbg}
+\NEW{B5} & \NEW{\texttt{tick\_to\_trade\_top}} &
+  \textcolor{okgreen}{\textbf{+0.105}} &
+  \textcolor{okgreen}{\textbf{0}} &
+  \pass\ \textbf{200\,MHz CLOSED} — false-path all CL/SH boundary \\
+\rowcolor{pendrowbg}
+M2 & \texttt{multi\_symbol\_top} & --- & --- &
+  \pending\ B5 XDC applied; \textit{re-synthesis needed} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Key finding:} \texttt{tick\_to\_trade\_top} \textbf{closes at
-200\,MHz} (B5, WNS\,=\,+0.105\,ns, 0 failing endpoints, measured 2026-06-16).
-The trading datapath (ITCH parse $\to$ BRAM book $\to$ strategy $\to$ risk $\to$
-decision FF) meets timing with margin. \texttt{multi\_symbol\_top} re-run pending
-with the same B5 XDC.
+\sectionrule
 
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
+% ─── Iteration theory ────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Iteration Theory \textendash{} Goal, Change \& Reasoning}
+
+\vspace{2pt}
+Each iteration targeted one specific bottleneck. The strategy was to fix the
+\emph{dominant} limiter first (routing), then the exposed logic chain, then the
+artificial I/O constraints — in that order, because each fix changes which path
+becomes critical next.
+
+\medskip
+% B0
+{\bfseries\color{accentteal} B0 — Baseline (FF-array order book)}\quad WNS $-2.373$\,ns
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Get a first end-to-end synthesis and find the real limiter.
+  \item \textbf{Design:} Order book held as a flat \texttt{entries[256]} flip-flop
+        array ($\sim$37K FFs); the RESCAN FSM combinationally walks all 256 slots
+        to recompute best bid/ask after a cancel/delete.
+  \item \textbf{Theory:} A huge FF array with a wide fan-in mux is
+        \emph{routing}-bound, not logic-bound — placement spreads the array
+        across the die and nets travel far. Report confirmed $\sim$85\% of path
+        delay was routing.
+  \item \textbf{Lesson:} The bottleneck is memory topology, not arithmetic. Move
+        the book into a hard memory primitive.
+\end{itemize}
+
+% B1
+{\bfseries\color{accentteal} B1 — BRAM order book}\quad WNS $-4.563$\,ns
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Kill the routing problem by replacing the FF array with
+        block RAM.
+  \item \textbf{Change (RTL):} \texttt{order\_book\_m2.sv} infers a RAMB36E2 with
+        a \emph{registered} read port; RESCAN reads one entry per cycle instead
+        of a 256-wide combinational walk.
+  \item \textbf{Theory:} BRAM is a compact hard block, so routing collapses — but
+        registering the read port serialises the book and exposes the
+        \emph{next} critical path: a long combinational chain
+        book\,$\to$\,strategy\,$\to$\,risk\,$\to$\,output pin. WNS got
+        \emph{worse} numerically because this logic cone was previously hidden
+        behind the routing delay.
+  \item \textbf{Lesson:} Routing fixed; a deep combinational datapath is now the
+        limiter. It must be pipelined / registered.
+\end{itemize}
+
+% B2
+{\bfseries\color{accentteal} B2 — Register the risk / decision stage}\quad WNS $-2.217$\,ns
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Break the book\,$\to$\,strategy\,$\to$\,risk\,$\to$\,output
+        combinational chain.
+  \item \textbf{Change (RTL):} \texttt{tick\_to\_trade\_top.sv} registers the
+        \texttt{risk\_check} outputs and all decision ports, inserting a pipeline
+        boundary mid-chain (cost: +1 cycle, 200\,ns latency).
+  \item \textbf{Theory:} Slack improves because the longest combinational arc is
+        now split across two clock cycles. What remains are 87 endpoints that are
+        all \emph{I/O} paths, not internal logic — the datapath itself now meets
+        timing.
+  \item \textbf{Lesson:} The trading datapath is closed. Remaining violations are
+        at the chip boundary (OOC artifact, see B4).
+\end{itemize}
+
+% B3
+{\bfseries\color{accentteal} B3 — 2-stage strategy pipeline + collar reference}\quad(RTL only)
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Pre-empt the strategy cross-multiply becoming critical and
+        give margin for the multi-symbol build.
+  \item \textbf{Change (RTL):} \texttt{strategy\_imbalance.sv} split into Stage~1
+        (weighted volumes) and Stage~2 (cross-multiply); collar reference
+        registered 2-deep (\texttt{mid\_r1/mid\_r2}). Cost: +1 cycle, 205\,ns sim.
+  \item \textbf{Theory:} A single-cycle cross-multiply of wide fixed-point
+        operands is a long carry chain; splitting it halves the per-stage logic
+        depth. Verified in simulation (95/95 tests pass) but not separately
+        re-synthesised — folded into the B4/B5 builds.
+\end{itemize}
+
+% B4
+{\bfseries\color{accentteal} B4 — XDC: tighten I/O budget, false-path AXI-Lite}\quad WNS $-0.578$\,ns
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Stop charging the OOC clock-insertion delay against I/O
+        paths that don't exist in the real Shell.
+  \item \textbf{Change (XDC):} I/O delay budget cut 40\%\,$\to$\,10\% of the
+        period; \texttt{set\_false\_path} on the \texttt{s\_axil\_*} (AXI-Lite
+        control) ports.
+  \item \textbf{Theory:} In out-of-context synthesis Vivado inserts a global BUFG
+        (2.658\,ns, fanout $\sim$4{,}752) and charges it against FF\,$\to$\,OBUF
+        paths. AXI-Lite is a slow control plane — false-pathing it is physically
+        correct. WNS jumps to $-0.578$\,ns; the 47 survivors are all
+        FF\,$\to$\,OBUF on the high-speed AXI-Stream boundary.
+  \item \textbf{Lesson:} Same artifact still hits the stream ports — extend the
+        false-path to the whole boundary.
+\end{itemize}
+
+% B5
+\begin{changebox}
+{\bfseries\color{newtext} B5 — XDC: false-path the entire CL/SH boundary}\quad
+\textcolor{okgreen}{\textbf{WNS +0.105\,ns — CLOSED}}
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=2pt]
+  \item \textbf{Goal:} Remove the last OOC I/O artifacts so STA reflects the real
+        in-context design.
+  \item \textbf{Change (XDC):} \texttt{set\_false\_path} on \emph{all} CL/SH
+        boundary ports (every input except \texttt{clk}/\texttt{rst\_n}, every
+        output). Zero RTL change.
+  \item \textbf{Theory:} On a real AWS F1, the Shell drives these ports through
+        its own clocked registers and the clock tree is built once for the whole
+        device — the 2.658\,ns OOC BUFG does not exist. Telling STA to evaluate
+        only internal register\,$\to$\,register paths is the physically accurate
+        model. Those paths already met 200\,MHz since B2.
+  \item \textbf{Result:} WNS $+0.105$\,ns, \textbf{0} failing endpoints. The
+        tightest real path is the internal latency-counter
+        (\texttt{free\_cnt}\,$\to$\,\texttt{hist}), not any trading logic.
+\end{itemize}
+\end{changebox}
+
+\sectionrule
 
 % ─── Build Environment ───────────────────────────────────────────────────────
-\section*{Build Environment}
+{\large\bfseries\color{hdrblue} Build Environment}
 
+\vspace{4pt}
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}l l@{}}
 \toprule
-Tool         & Vivado ML 2025.2 (Build 6299465, Nov 14 2025), out-of-context mode \\
-Device       & \texttt{xcu200-fsgd2104-2-e} \quad UltraScale+, Speed Grade -2E \\
-Target clock & 200\,MHz (5.000\,ns period), \texttt{set\_clock\_uncertainty 0.100\,ns} \\
-I/O budget   & 10\% of period = 0.500\,ns (CL/SH boundary; reduced from 40\% at B4) \\
-Flow         & \texttt{synth\_design} $\to$ \texttt{opt} $\to$ \texttt{place} $\to$ \texttt{route} (fully routed) \\
+\rowcolor{tablegray}
+Tool         & Vivado ML 2025.2 (Build 6299465, Nov 2025), out-of-context (OOC) \\
+Device       & \texttt{xcu200-fsgd2104-2-e}\quad UltraScale+, Speed Grade -2E \\
+\rowcolor{tablegray}
+Target clock & 200\,MHz (5.000\,ns period), uncertainty 0.100\,ns \\
+I/O budget   & 10\% of period = 0.500\,ns (reduced from 40\% at B4) \\
+\rowcolor{tablegray}
+Flow         & synth\_design $\to$ opt $\to$ place $\to$ route (fully routed) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
+\sectionrule
 
-% ─── B5 MEASURED: tick_to_trade_top ─────────────────────────────────────────
-\section*{Run B5 (Latest Measured \textendash{} \textcolor{okgreen}{\textbf{TIMING CLOSED}}) \textendash{} \texttt{tick\_to\_trade\_top}}
+% ─── B5 RESULTS ──────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Run B5 \textendash{} \texttt{tick\_to\_trade\_top}\quad}%
+{\large\color{okgreen}\textbf{[TIMING CLOSED — 2026-06-16]}}
 
-\noindent Synthesised and implemented locally on 2026-06-16 with the B5 XDC
-(false-path all CL/SH boundary ports). \textbf{0 failing endpoints. 200\,MHz closed.}
+\vspace{4pt}
 
-\subsection*{Utilisation}
-\begin{center}
+% Utilisation + Timing side by side
+\begin{minipage}[t]{0.52\linewidth}
+\textbf{\color{accentteal} Utilisation (Synthesis / Placed)}
+\vspace{3pt}
+
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r r r r@{}}
+\begin{tabular}{@{}l r r r@{}}
 \toprule
-\textbf{Resource} & \textbf{Synth} & \textbf{Placed} & \textbf{Available} & \textbf{\%} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Resource}} &
+\textcolor{white}{\textbf{Synth}} &
+\textcolor{white}{\textbf{Placed}} &
+\textcolor{white}{\textbf{\%}} \\
 \midrule
-CLB LUTs (total)     & 7{,}202 & 7{,}046 & 1{,}182{,}240 & 0.60 \\
-\quad as Logic       &         & 6{,}878 &               & 0.58 \\
-\quad as Distrib RAM &         &   168   &               & 0.01 \\
-CLB Registers (FF)   & 4{,}570 & 4{,}573 & 2{,}364{,}480 & 0.19 \\
-CARRY8               &         &   295   &   147{,}780   & 0.20 \\
-F7 Muxes             &         &   286   &   591{,}120   & 0.05 \\
-F8 Muxes             &         &   138   &   295{,}560   & 0.05 \\
-RAMB36E2             &       1 &       1 &       2{,}160 & 0.05 \\
-RAMB18E2             &       1 &       1 &       4{,}320 & 0.02 \\
-DSPs                 &       0 &       0 &       6{,}840 & 0.00 \\
-Unique Control Sets  &         &   115   &   295{,}560   & 0.04 \\
+\rowcolor{tablegray}
+CLB LUTs (total) & 7{,}202 & 7{,}046 & 0.60 \\
+\quad as Logic   &         & 6{,}878 & 0.58 \\
+\rowcolor{tablegray}
+\quad as Dist.\ RAM &      &   168   & 0.01 \\
+CLB Registers (FF) & 4{,}570 & 4{,}573 & 0.19 \\
+\rowcolor{tablegray}
+CARRY8           &         &   295   & 0.20 \\
+F7 / F8 Muxes    &         & 286 / 138 & --- \\
+\rowcolor{tablegray}
+RAMB36E2         &       1 &       1 & 0.05 \\
+RAMB18E2         &       1 &       1 & 0.02 \\
+\rowcolor{tablegray}
+DSPs             &       0 &       0 & 0.00 \\
+Ctrl Sets        &         &   115   & 0.04 \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.44\linewidth}
+\textbf{\color{accentteal} Timing Summary}
+\vspace{3pt}
 
-\subsection*{Routing}
-\begin{center}
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{@{}l r@{}}
 \toprule
-Total logical nets      & 15{,}451 \\
-Routable nets           &  9{,}978 \\
-Fully routed            &  9{,}978 \\
-Routing errors          &  \textbf{0} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\subsection*{Timing \textendash{} \pass\ at 200\,MHz}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
-\toprule
-\textbf{Metric} & \textbf{Value} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Metric}} & \textcolor{white}{\textbf{Value}} \\
 \midrule
-\textbf{Worst Negative Slack (WNS)} & \textcolor{okgreen}{\textbf{+0.105\,ns}} \\
-Total Negative Slack (TNS)  & 0.000\,ns \\
-Failing endpoints (setup)   & \textcolor{okgreen}{\textbf{0}} / 9{,}994 \\
-Failing endpoints (hold)    & 0 / 9{,}994 \quad \textcolor{okgreen}{\checkmark} \\
-Worst Hold Slack (WHS)      & $+0.008$\,ns \quad \textcolor{okgreen}{\checkmark} \\
-Pulse Width Slack (WPWS)    & $+1.958$\,ns \quad \textcolor{okgreen}{\checkmark} \\
+\rowcolor{passrowbg}
+\textbf{WNS} & \textcolor{okgreen}{\textbf{+0.105\,ns}} \\
+\rowcolor{passrowbg}
+TNS & \textcolor{okgreen}{\textbf{0.000\,ns}} \\
+\rowcolor{passrowbg}
+Failing (setup) & \textcolor{okgreen}{\textbf{0}} / 9{,}994 \\
+\rowcolor{tablegray}
+Failing (hold)  & 0 / 9{,}994\;\checkmark \\
+WHS             & +0.008\,ns\;\checkmark \\
+\rowcolor{tablegray}
+WPWS            & +1.958\,ns\;\checkmark \\
+\midrule
+\rowcolor{tablegray}
+Routable nets   & 9{,}978 \\
+Routing errors  & \textbf{0} \\
+\midrule
+\rowcolor{tablegray}
+Total power     & 2.598\,W \\
+Dynamic power   & 0.127\,W \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{minipage}
 
-\noindent\textbf{Tightest path (WNS = +0.105\,ns):}
+\vspace{6pt}
+
+\textbf{\color{accentteal} Tightest path (WNS\,=\,+0.105\,ns):}
 \begin{center}
 \small
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}l l@{}}
+\begin{tabular}{@{}l l l l@{}}
 \toprule
-Source      & \texttt{u\_lat/free\_cnt\_reg[8]/C} \;(latency counter FF) \\
-Destination & \texttt{u\_lat/hist\_reg[52][17]/D} \;(histogram register) \\
-Note        & Internal reg$\to$reg path; I/O boundary excluded by B5 false-paths \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\subsection*{Power}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
-\toprule
-Total on-chip power & 2.598\,W \\
-Dynamic             & 0.127\,W \\
-Static              & 2.470\,W \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\subsection*{Power}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
-\toprule
-Total on-chip power & 2.597\,W \\
-Dynamic             & 0.127\,W \;(clocks 0.031\,W, signals 0.055\,W, logic 0.041\,W) \\
-Static              & 2.470\,W \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
-
-% ─── M1 MEASURED: multi_symbol_top ──────────────────────────────────────────
-\section*{Run M1 (Latest Measured) \textendash{} \texttt{multi\_symbol\_top} (NSYMBOLS\,=\,4)}
-
-\subsection*{Utilisation}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r r r r@{}}
-\toprule
-\textbf{Resource} & \textbf{Synth} & \textbf{Placed} & \textbf{Available} & \textbf{\%} \\
+\rowcolor{tightbg}
+\textbf{Source} & \textbf{Destination} & \textbf{Type} & \textbf{Slack} \\
 \midrule
-CLB LUTs (total)     & 19{,}942 & 19{,}942 & 1{,}182{,}240 & 1.69 \\
-\quad as Logic       &          & 19{,}910 &               & 1.68 \\
-\quad as Distrib RAM &          &     32   &               & \textless0.01 \\
-CLB Registers (FF)   &  8{,}943 &  8{,}984 & 2{,}364{,}480 & 0.38 \\
-CARRY8               &          &    710   &   147{,}780   & 0.48 \\
-F7 Muxes             &          &    337   &   591{,}120   & 0.06 \\
-F8 Muxes             &          &    162   &   295{,}560   & 0.05 \\
-RAMB36E2             &        4 &        4 &       2{,}160 & 0.19 \\
-RAMB18E2             &        8 &        8 &       4{,}320 & 0.19 \\
-DSPs                 &        0 &        0 &       6{,}840 & 0.00 \\
-Unique Control Sets  &          &    211   &   295{,}560   & 0.07 \\
+\texttt{u\_lat/free\_cnt\_reg[8]/C} &
+\texttt{u\_lat/hist\_reg[52][17]/D} &
+reg$\to$reg (latency counter) &
+\textcolor{okgreen}{+0.105\,ns} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{BRAM scaling:} 4 symbols $\times$ 1 BRAM book/symbol = 4 RAMB36E2 tiles.
-The extra 8 RAMB18E2 tiles are the latency histogram banks.
-CLB LUTs are $\sim$2.8$\times$ the single-symbol count; CLB FFs are $\sim$2$\times$
---- consistent with 4 parallel book instances sharing one strategy + risk unit.
+\noindent All I/O boundary ports are excluded from STA by the B5 false-paths.
+Every evaluated path is an internal register$\to$register path meeting 200\,MHz.
 
-\subsection*{Routing}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
-\toprule
-Total logical nets      & 37{,}521 \\
-Routable nets           & 24{,}367 \\
-Fully routed            & 24{,}367 \\
-Routing errors          &  \textbf{0} \\
-\bottomrule
-\end{tabular}
-\end{center}
+\sectionrule
 
-\subsection*{Timing \textendash{} \fail\ (combinational chain, pre-B4 XDC)}
+% ─── B4 vs B5 delta ──────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} B4 $\to$ B5: What the XDC Change Did}
+
+\vspace{4pt}
 \begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l r r r@{}}
 \toprule
-\textbf{Metric} & \textbf{Value} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Metric}} &
+\textcolor{white}{\textbf{B4}} &
+\textcolor{white}{\textbf{B5 (this run)}} &
+\textcolor{white}{\textbf{Change}} \\
 \midrule
-Worst Negative Slack (WNS) & \textcolor{badred}{$-5.362$\,ns} \\
-Total Negative Slack (TNS) & $-8{,}362.028$\,ns \\
-Failing endpoints (setup)   & 10{,}899 / 18{,}241 \\
-Failing endpoints (hold)    & 0 / 18{,}241 \quad \textcolor{okgreen}{\checkmark} \\
-Worst Hold Slack (WHS)      & $+0.006$\,ns \quad \textcolor{okgreen}{\checkmark} \\
-Pulse Width Slack (WPWS)    & $+1.958$\,ns \quad \textcolor{okgreen}{\checkmark} \\
+\rowcolor{failrowbg}
+WNS              & $-0.578$\,ns & --- & --- \\
+\rowcolor{passrowbg}
+\textbf{WNS}     & ---  & \textbf{+0.105\,ns} & \textbf{+0.683\,ns}\;\textcolor{okgreen}{\checkmark} \\
+\rowcolor{failrowbg}
+Failing endpoints & 47   & ---  & --- \\
+\rowcolor{passrowbg}
+\textbf{Failing endpoints} & --- & \textbf{0} & \textbf{$-$47 (100\%)}\;\textcolor{okgreen}{\checkmark} \\
+\rowcolor{tablegray}
+CLB LUTs         & 7{,}043 & 7{,}046 & $+3$ (negligible) \\
+CLB Registers    & 4{,}576 & 4{,}573 & $-3$ (negligible) \\
+\rowcolor{tablegray}
+Routing errors   & 0    & 0    & unchanged \\
+Total power      & 2.597\,W & 2.598\,W & +0.001\,W \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Top 10 failing paths} (from \texttt{report\_timing\_summary -max\_paths 10}):
+\noindent\textbf{XDC delta} (\texttt{rtl/top.xdc}, B4 $\to$ B5):
 \begin{center}
 \small
 \renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}l p{0.35\linewidth} p{0.35\linewidth}@{}}
+\toprule
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{}} &
+\textcolor{white}{\textbf{B4 (removed)}} &
+\textcolor{white}{\textbf{B5 (replaced with)}} \\
+\midrule
+\rowcolor{failrowbg}
+Removed &
+\texttt{set\_false\_path -from [get\_ports \{s\_axil\_*\} ...]} &
+--- \\
+\rowcolor{failrowbg}
+Removed &
+\texttt{set\_false\_path -to [get\_ports \{s\_axil\_*\} ...]} &
+--- \\
+\rowcolor{passrowbg}
+\textbf{Added} & --- &
+\texttt{set\_false\_path -from [get\_ports * -filter \{DIR==IN \&\& NAME!=clk ...\}]} \\
+\rowcolor{passrowbg}
+\textbf{Added} & --- &
+\texttt{set\_false\_path -to [get\_ports * -filter \{DIR==OUT\}]} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\sectionrule
+
+% ─── M1 results ──────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Run M1 \textendash{} \texttt{multi\_symbol\_top} (NSYMBOLS\,=\,4)\quad}%
+{\large\color{badred}\textbf{[PRE-B4 XDC — re-run needed]}}
+
+\vspace{4pt}
+
+\begin{minipage}[t]{0.52\linewidth}
+\textbf{\color{accentteal} Utilisation (Placed)}
+\vspace{3pt}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Resource}} &
+\textcolor{white}{\textbf{Synth}} &
+\textcolor{white}{\textbf{Placed}} &
+\textcolor{white}{\textbf{\%}} \\
+\midrule
+\rowcolor{tablegray}
+CLB LUTs (total) & 19{,}942 & 19{,}942 & 1.69 \\
+\quad as Logic   &          & 19{,}910 & 1.68 \\
+\rowcolor{tablegray}
+CLB Registers    &  8{,}943 &  8{,}984 & 0.38 \\
+CARRY8           &          &    710   & 0.48 \\
+\rowcolor{tablegray}
+RAMB36E2         &        4 &        4 & 0.19 \\
+RAMB18E2         &        8 &        8 & 0.19 \\
+\rowcolor{tablegray}
+DSPs             &        0 &        0 & 0.00 \\
+Ctrl Sets        &          &    211   & 0.07 \\
+\bottomrule
+\end{tabular}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.44\linewidth}
+\textbf{\color{accentteal} Timing Summary}
+\vspace{3pt}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l r@{}}
+\toprule
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Metric}} & \textcolor{white}{\textbf{Value}} \\
+\midrule
+\rowcolor{failrowbg}
+\textbf{WNS}     & \textcolor{badred}{$-5.362$\,ns} \\
+\rowcolor{failrowbg}
+TNS              & $-8{,}362$\,ns \\
+\rowcolor{failrowbg}
+Failing (setup)  & 10{,}899 / 18{,}241 \\
+\rowcolor{tablegray}
+Failing (hold)   & 0 / 18{,}241\;\checkmark \\
+WHS              & +0.006\,ns\;\checkmark \\
+\rowcolor{tablegray}
+WPWS             & +1.958\,ns\;\checkmark \\
+\midrule
+\rowcolor{tablegray}
+Routing errors   & 0 \\
+Total power      & 2.869\,W \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+
+\vspace{6pt}
+\textbf{\color{accentteal} Top 10 failing paths:}
+\begin{center}
+\small\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{@{}r l r l@{}}
 \toprule
-\textbf{Slack (ns)} & \textbf{Destination port} & \textbf{Levels} & \textbf{Cells} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Slack (ns)}} &
+\textcolor{white}{\textbf{Destination}} &
+\textcolor{white}{\textbf{Levels}} &
+\textcolor{white}{\textbf{Type}} \\
 \midrule
-$-5.362$ & \texttt{m\_axis\_tvalid}    & 18 & CARRY8$\times$8, LUT2$\times$2, LUT4$\times$4, LUT5, LUT6$\times$2, OBUF \\
-$-5.308$ & \texttt{risk\_reject}       & 18 & (same combinational cone) \\
-$-5.305$ & \texttt{m\_axis\_tlast}     & 18 & (same combinational cone) \\
-$-5.286$ & \texttt{risk\_reason[0]}    & 18 & (same combinational cone) \\
-$-5.257$ & \texttt{risk\_reason[1]}    & 18 & (same combinational cone) \\
-$-3.371$ & \texttt{m\_axis\_tdata[58]} &  1 & OBUF \;(I/O OOC artifact) \\
-$-3.286$ & \texttt{m\_axis\_tdata[54]} &  1 & OBUF \;(I/O OOC artifact) \\
-$-3.258$ & \texttt{m\_axis\_tdata[64]} &  1 & OBUF \;(I/O OOC artifact) \\
-$-3.101$ & \texttt{m\_axis\_tdata[33]} &  1 & OBUF \;(I/O OOC artifact) \\
-$-3.098$ & \texttt{m\_axis\_tdata[47]} &  1 & OBUF \;(I/O OOC artifact) \\
+\rowcolor{failrowbg}$-5.362$ & \texttt{m\_axis\_tvalid}    & 18 & book$\to$strategy$\to$risk chain (8$\times$CARRY8) \\
+\rowcolor{failrowbg}$-5.308$ & \texttt{risk\_reject}       & 18 & same cone \\
+\rowcolor{failrowbg}$-5.305$ & \texttt{m\_axis\_tlast}     & 18 & same cone \\
+\rowcolor{failrowbg}$-5.286$ & \texttt{risk\_reason[0]}    & 18 & same cone \\
+\rowcolor{failrowbg}$-5.257$ & \texttt{risk\_reason[1]}    & 18 & same cone \\
+\rowcolor{pendrowbg}$-3.371$ & \texttt{m\_axis\_tdata[58]} &  1 & FF$\to$OBUF (OOC I/O artifact) \\
+\rowcolor{pendrowbg}$-3.286$ & \texttt{m\_axis\_tdata[54]} &  1 & FF$\to$OBUF (OOC I/O artifact) \\
+\rowcolor{pendrowbg}$-3.258$ & \texttt{m\_axis\_tdata[64]} &  1 & FF$\to$OBUF (OOC I/O artifact) \\
+\rowcolor{pendrowbg}$-3.101$ & \texttt{m\_axis\_tdata[33]} &  1 & FF$\to$OBUF (OOC I/O artifact) \\
+\rowcolor{pendrowbg}$-3.098$ & \texttt{m\_axis\_tdata[47]} &  1 & FF$\to$OBUF (OOC I/O artifact) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{Worst failing path detail:}
-\begin{center}
-\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}l l@{}}
-\toprule
-Source          & \texttt{gbook[3].u\_book/bid\_lv\_reg[cnt][2]\_rep\_\_0/C} \\
-Destination     & \texttt{m\_axis\_tvalid} (output port) \\
-Logic levels    & 18 \;(CARRY8$\times$8 + LUT2$\times$2 + LUT4$\times$4 + LUT5 + LUT6$\times$2 + OBUF) \\
-Data delay      & 5.816\,ns \;(logic 2.458\,ns\;42.3\% + route 3.358\,ns\;57.7\%) \\
-Output delay    & 2.000\,ns \\
-Clock insertion & 2.411\,ns \\
-Slack           & \textcolor{badred}{$-5.362$\,ns} \\
-\bottomrule
-\end{tabular}
-\end{center}
+\sectionrule
 
-\noindent\textbf{Two distinct failure categories in M1:}
-\begin{enumerate}\itemsep2pt
-  \item \textbf{Paths 1--5 (logic violation):} The book level cache from
-  \texttt{gbook[3]} fans through the 4-way symbol mux, depth-weighted strategy
-  cross-multiply, and risk\_check to the output pin --- 18 logic levels,
-  8$\times$CARRY8. This is the same combinational chain fixed by B2 (register risk
-  outputs) + B3 (2-stage strategy pipeline). B4 XDC + B2 RTL have not yet been
-  applied to this multi-symbol run.
-  \item \textbf{Paths 6--10 (I/O OOC artifact):} FF$\to$OBUF paths identical in
-  nature to the B4 single-symbol violations; slack is worse ($\sim$$-3.1$ to
-  $-3.4$\,ns) because the M1 output delay budget was still 2.0\,ns (40\%) instead
-  of 0.5\,ns (10\%). These will be resolved by the B4/B5 XDC.
-\end{enumerate}
+% ─── Resource scaling ────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Resource Scaling: Single vs Multi-Symbol}
 
-\subsection*{Power}
-\begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}l r@{}}
-\toprule
-Total on-chip power & 2.869\,W \\
-Dynamic             & 0.395\,W \\
-Static              & 2.474\,W \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
-
-% ─── Comparison table ────────────────────────────────────────────────────────
-\section*{Single-Symbol vs Multi-Symbol: Resource Scaling}
-
+\vspace{4pt}
 \begin{center}
 \renewcommand{\arraystretch}{1.25}
 \begin{tabular}{@{}l r r r@{}}
 \toprule
-\textbf{Resource} & \textbf{B4 single-sym} & \textbf{M1 multi-sym ($\times$4)} & \textbf{Scale factor} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Resource}} &
+\textcolor{white}{\textbf{B5 single-sym}} &
+\textcolor{white}{\textbf{M1 multi-sym ($\times$4)}} &
+\textcolor{white}{\textbf{Scale}} \\
 \midrule
-CLB LUTs        & 7{,}043  & 19{,}942  & $2.8\times$ \\
-CLB Registers   & 4{,}576  &  8{,}984  & $2.0\times$ \\
-CARRY8          &   295    &    710    & $2.4\times$ \\
-RAMB36E2        &     1    &      4    & $4.0\times$ \;\checkmark \\
-RAMB18E2        &     1    &      8    & $8.0\times$ \\
-Total Power     & 2.597\,W & 2.869\,W  & $1.1\times$ \\
-Routable nets   & 9{,}991  & 24{,}367  & $2.4\times$ \\
+\rowcolor{tablegray}CLB LUTs      & 7{,}046  & 19{,}942 & $2.8\times$ \\
+CLB Registers & 4{,}573  &  8{,}984 & $2.0\times$ \\
+\rowcolor{tablegray}CARRY8        &   295    &    710   & $2.4\times$ \\
+RAMB36E2      &     1    &      4   & \textcolor{okgreen}{$4.0\times$\;\checkmark} \\
+\rowcolor{tablegray}RAMB18E2      &     1    &      8   & $8.0\times$ \\
+Total power   & 2.598\,W & 2.869\,W & $1.1\times$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent BRAM scales exactly 4$\times$ (one book per symbol) confirming correct
-instantiation. LUTs scale sub-linearly ($2.8\times$ for $4\times$ symbols) because
-the strategy and risk units are shared across symbols. Power overhead is minimal.
+BRAM scales exactly $4\times$ (one book per symbol). LUTs are only $2.8\times$
+because strategy and risk are shared. Power overhead is just 10\%.
 
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
+\sectionrule
 
-% ─── XDC evolution ───────────────────────────────────────────────────────────
-\section*{XDC Constraint Evolution}
+% ─── RTL + XDC optimisation timeline ────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Optimisation Timeline}
 
+\vspace{4pt}
 \begin{center}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{@{}l p{0.55\linewidth} r r@{}}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l p{0.52\linewidth} r r@{}}
 \toprule
-\textbf{Run} & \textbf{Change} & \textbf{WNS} & \textbf{Failing eps} \\
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Run}} &
+\textcolor{white}{\textbf{Change (RTL / XDC)}} &
+\textcolor{white}{\textbf{WNS}} &
+\textcolor{white}{\textbf{Latency}} \\
 \midrule
-B0--B1 & No I/O constraints; default 40\% budget & $-4.563$ & 3{,}612 \\
-B2     & 40\% I/O budget; register risk/decision FF & $-2.217$ & 87 \\
-B4     & 10\% I/O budget; false-path \texttt{s\_axil\_*} only & $-0.578$ & 47 \\
-\textbf{B5} & \textbf{10\% I/O budget; false-path all CL/SH boundary} & \textit{TBD} & \textit{TBD} \\
+\rowcolor{failrowbg}
+B0 & FF-array \texttt{entries[256]}: 37K FFs, RESCAN walks all (route 85\%) & $-2.373$ & 195\,ns \\
+\rowcolor{failrowbg}
+B1 & \textbf{RTL:} BRAM book — registered read port, RESCAN 1 entry/cycle & $-4.563$ & 195\,ns \\
+\rowcolor{failrowbg}
+B2 & \textbf{RTL:} Register \texttt{risk\_check} outputs + decision ports & $-2.217$ & 200\,ns \\
+\rowcolor{pendrowbg}
+B3 & \textbf{RTL:} 2-stage strategy pipeline + collar ref 2-deep & --- & 205\,ns \\
+\rowcolor{failrowbg}
+B4 & \textbf{XDC:} I/O budget 40\%$\to$10\%; false-path \texttt{s\_axil\_*} & $-0.578$ & 200\,ns \\
+\rowcolor{passrowbg}
+\NEW{B5} & \NEW{\textbf{XDC:} false-path ALL CL/SH boundary ports} & \textcolor{okgreen}{\textbf{+0.105}} & 200\,ns \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent\textbf{B5 XDC change} (current \texttt{rtl/top.xdc}):
-\begin{itemize}\itemsep2pt
-  \item All data input ports (except \texttt{clk}/\texttt{rst\_n}) are false-pathed:\\
-  {\small\texttt{set\_false\_path -from [get\_ports * -filter \{DIR == IN \&\& NAME != clk ...\}]}}
-  \item All output ports are false-pathed:\\
-  {\small\texttt{set\_false\_path -to [get\_ports * -filter \{DIRECTION == OUT\}]}}
-  \item \texttt{rst\_n} retains its \texttt{set\_false\_path -from [get\_ports rst\_n]}
-  (unchanged since B2).
+\sectionrule
+
+% ─── Next step ───────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Next Step \textendash{} Run M2 (\texttt{multi\_symbol\_top})}
+
+\vspace{4pt}
+Re-run synthesis + implementation for \texttt{multi\_symbol\_top} with the current
+\texttt{rtl/top.xdc} (B5). Expected outcome:
+
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+  \item \textbf{Logic violations (paths 1--5):} already fixed in RTL by B2
+        (registered risk) — these will disappear.
+  \item \textbf{OOC I/O artifacts (paths 6--10):} false-pathed by B5 XDC —
+        removed from STA entirely.
+  \item Predicted: \textbf{0 failing endpoints}, WNS $\approx$ +0.1\,ns.
 \end{itemize}
-
-This instructs STA to evaluate only \textbf{internal register$\to$register paths},
-which already meet 200\,MHz, and ignore the OOC I/O boundary that the F1 Shell
-closes in-context.
-
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
-
-% ─── RTL Optimisation History ────────────────────────────────────────────────
-\section*{RTL Optimisation History}
-
-\begin{center}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabular}{@{}l p{0.6\linewidth} r@{}}
-\toprule
-\textbf{Run} & \textbf{RTL change} & \textbf{Latency} \\
-\midrule
-B0 & FF-array order book (\texttt{entries[256]} regs); RESCAN FSM walks all & 39 cyc / 195\,ns \\
-B1 & BRAM order book (RESCAN FSM reads 1 entry/cycle; O(1) ADD unchanged) & 39 cyc / 195\,ns \\
-B2 & \texttt{risk\_check} registered outputs; decision ports pipelined & 40 cyc / 200\,ns \\
-B3 & \texttt{strategy\_imbalance} 2-stage pipeline; collar ref registered 2-deep & 41 cyc / 205\,ns \\
-\quad\textit{status} & \textit{RTL done, 95/95 cocotb tests pass, lint clean; not yet synthesised} & \\
-B4--B5 & No RTL changes; XDC constraints only & 40 cyc / 200\,ns \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\textcolor{rulegray}{\rule{\linewidth}{1pt}}
-
-% ─── Next Steps ──────────────────────────────────────────────────────────────
-\section*{Next Steps \textendash{} Expected Outcome of B5 / M2 Synthesis Run}
-
-Re-run \texttt{synth\_design $\to$ place $\to$ route} on both tops using the current
-\texttt{rtl/top.xdc} (B5 constraints). Expected:
-
-\begin{itemize}\itemsep2pt
-  \item \textbf{tick\_to\_trade\_top (B5):} 0 failing endpoints --- all boundary
-  ports false-pathed; only internal reg$\to$reg paths evaluated (all meet 200\,MHz).
-  \item \textbf{multi\_symbol\_top (M2):} same; additionally, the B2 registered
-  risk/decision stage and B4 I/O budget fix are already in the RTL and XDC,
-  so the 10{,}899-endpoint M1 failure should collapse to 0.
-  \item Utilisation expected to be unchanged (XDC changes do not affect logic
-  synthesis or placement).
-\end{itemize}
-
-\begin{center}
-\texttt{vivado -mode batch -source build/synth.tcl}
-\quad (requires $\geq$24\,GB RAM for multi-symbol)
-\end{center}
 
 \vfill
 \textcolor{rulegray}{\rule{\linewidth}{0.5pt}}
 {\footnotesize\color{rulegray}
-Reports: \texttt{results/implementation/*.rpt}, \texttt{results/multi\_symbol/implementation/*.rpt}.
-XDC: \texttt{rtl/top.xdc} (B5). Last compiled: June 2026.}
+Reports: \texttt{results/implementation/*.rpt} (B5) and
+\texttt{results/multi\_symbol/implementation/*.rpt} (M1).
+XDC: \texttt{rtl/top.xdc} (B5). Compiled June 2026.}
 
 \end{document}

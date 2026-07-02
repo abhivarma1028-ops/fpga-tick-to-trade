@@ -12,6 +12,19 @@ TOPLEVEL_LANG  ?= verilog
 TOPLEVEL       ?= itch_parser
 MODULE         ?= tb_itch_parser
 
+# --- Pure-Python golden checks (no simulator needed) ----------------------
+# strat-equiv : assert host/strategy_sw.py == golden/strategy_imbalance.py
+#               (live software path vs the RTL-validated reference).
+# py-golden   : print the phase-2 golden decision trace.
+.PHONY: strat-equiv py-golden regression
+strat-equiv:
+	python tb_strategy_sw_equiv.py
+py-golden:
+	python phase2_golden.py
+# whole-project pure-Python regression (equivalence + HFT logic + maker + smokes)
+regression:
+	cd .. && ./run_all_tests.sh
+
 RTL_DIR        := $(abspath ../rtl)
 
 VERILOG_SOURCES  = $(RTL_DIR)/itch_parser.sv
@@ -19,10 +32,14 @@ VERILOG_SOURCES += $(RTL_DIR)/order_book_top.sv
 VERILOG_SOURCES += $(RTL_DIR)/order_book_m2.sv
 VERILOG_SOURCES += $(RTL_DIR)/multi_symbol_book.sv
 VERILOG_SOURCES += $(RTL_DIR)/strategy_imbalance.sv
+VERILOG_SOURCES += $(RTL_DIR)/pipe_divu.sv
+VERILOG_SOURCES += $(RTL_DIR)/strategy_market_maker.sv
+VERILOG_SOURCES += $(RTL_DIR)/market_maker_top.sv
 VERILOG_SOURCES += $(RTL_DIR)/risk_check.sv
 VERILOG_SOURCES += $(RTL_DIR)/latency_counter.sv
 VERILOG_SOURCES += $(RTL_DIR)/tick_to_trade_top.sv
 VERILOG_SOURCES += $(RTL_DIR)/multi_symbol_top.sv
+VERILOG_SOURCES += $(abspath ../f1/cl_tick_to_trade_core.sv)
 
 # SystemVerilog Assertions, bound to the DUTs. Questa only — the Verilator
 # smoke path and Vivado synthesis never see this file.

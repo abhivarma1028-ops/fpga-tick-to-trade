@@ -54,13 +54,13 @@
 % ============================ HEADER =======================================
 {\LARGE\bfseries\color{fpgablue} FPGA Tick-to-Trade}\hfill
 {\small\color{rulegray} Technical Brief \textbullet\ June 2026}\\[-1pt]
-{\large A hardware trading pipeline: NASDAQ ITCH in, order decision out, in \textbf{195\,ns}.}
+{\large A hardware trading pipeline: NASDAQ ITCH in, order decision out, in \textbf{205\,ns}.}
 
 \hruleline
 
 \vspace{-2pt}
 This system reconstructs the NASDAQ order book and emits a trading decision
-\textbf{entirely in FPGA fabric}, on a fixed, jitter-free 195\,ns budget --- roughly
+\textbf{entirely in FPGA fabric}, on a fixed, jitter-free 205\,ns budget --- roughly
 \textbf{five orders of magnitude} faster than the equivalent software path. It targets
 AWS F1 (Xilinx UltraScale+ VU9P), is verified bit-for-bit against a Python golden model,
 and routes its decisions to a live Interactive Brokers \emph{paper} account. This brief
@@ -71,7 +71,7 @@ are the territory.
 \section{System architecture}
 
 The design has two paths. The \textbf{hardware fast path} (blue) turns a raw market-data
-byte stream into a trade decision in 195\,ns. The \textbf{software execution path} (green)
+byte stream into a trade decision in 205\,ns. The \textbf{software execution path} (green)
 takes that decision off-chip and routes it to the broker --- network-bound at tens of
 milliseconds. The whole point of the project lives in the gap between the two.
 
@@ -98,14 +98,14 @@ milliseconds. The whole point of the project lives in the gap between the two.
   \node[font=\scriptsize\itshape, hostgreen, below=0.15cm of host, align=center]
         {$\approx$30\,ms\\(network)};
   \node[font=\scriptsize\bfseries, accent, below=0.05cm of lat]
-        {39 cycles @ 200\,MHz = 195\,ns};
+        {41 cycles @ 200\,MHz = 205\,ns};
 \end{tikzpicture}
 \end{center}
 
 \vspace{-4pt}
 \begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=1pt]
   \item \textbf{One clock domain, one direction.} A byte enters every cycle; a decision
-        leaves a fixed 39 cycles after a message completes. No floating-point anywhere in
+        leaves a fixed 41 cycles after a message completes. No floating-point anywhere in
         the data path --- all fixed-point integer arithmetic.
   \item \textbf{Valid/ready back-pressure} between the parser and the book means a message
         arriving while the book is busy is \emph{held}, never dropped.
@@ -215,12 +215,12 @@ Off-chip, \texttt{risk\_guard.py} applies pre-trade checks (SEC Rule 15c3-5) bef
 order is sent, and the live path only ever targets a paper account.
 
 % ============================ LATENCY MEASUREMENT ===========================
-\section{Latency measurement (how the 195\,ns is proven)}
+\section{Latency measurement (how the 205\,ns is proven)}
 
 A free-running 32-bit counter timestamps \texttt{t0} on the first byte of a message and
 \texttt{t1} on \texttt{decision\_valid}; $\Delta = t1-t0$ is binned into a 64-bucket
 histogram. Because the pipeline is deterministic, that histogram is a \textbf{single spike}
-at 39 cycles --- visual proof of zero jitter, where a CPU would smear across 3--4 orders of
+at 41 cycles --- visual proof of zero jitter, where a CPU would smear across 3--4 orders of
 magnitude. The host reads it over a small AXI-Lite slave:
 
 \begin{center}
@@ -255,7 +255,7 @@ tb\_order\_book         & 11 & M1 top-of-book on Add (baseline) \\
 tb\_order\_book\_m2     & 28 & multi-level depth, RESCAN, replace, RESCAN-skip, no-op trade \\
 tb\_strategy\_imbalance & 21 & imbalance, spread guard, cooldown, lot tiers, depth weighting \\
 tb\_latency\_counter    &  5 & histogram, saturation, AXI-Lite read, clear \\
-tb\_tick\_to\_trade     &  5 & full pipeline, 195\,ns latency, back-pressure no-drop \\
+tb\_tick\_to\_trade     &  5 & full pipeline, 205\,ns latency, back-pressure no-drop \\
 \midrule
 \textbf{Total}          & \textbf{81} & \textbf{100\,\% pass} \\
 \bottomrule
@@ -271,9 +271,11 @@ tb\_tick\_to\_trade     &  5 & full pipeline, 195\,ns latency, back-pressure no-
 \toprule
 \textbf{Metric} & \textbf{This design (FPGA)} & \textbf{Software path} \\
 \midrule
-Tick-to-trade latency        & \textbf{195\,ns} (39 cycles)      & $\sim$30{,}000{,}000\,ns (30\,ms) \\
-Latency jitter               & \textbf{0\,ns} (deterministic)    & milliseconds, unbounded \\
-Speed-up to a decision       & \multicolumn{2}{l}{\textbf{$>$150{,}000$\times$} faster} \\
+Tick-to-trade \emph{compute}  & \textbf{205\,ns} (41 cycles)      & $\sim$1\,\textmu s (C, \texttt{-O2}); $\sim$60\,\textmu s (Python) \\
+Compute speed-up (measured)   & \multicolumn{2}{l}{\textbf{$\sim$5$\times$} vs compiled C \textendash{} \textbf{$\sim$300$\times$} vs Python (same golden chain)} \\
+Latency jitter                & \textbf{0\,ns} (deterministic)    & $\sim$0.4\textendash1\,ms tail spikes (OS-scheduled, unbounded) \\
+Worst-case (tail) vs FPGA     & \multicolumn{2}{l}{C tail reaches $\sim$1{,}800$\times$ the FPGA \textendash{} the tail, not the median, is what HFT loses on} \\
++ Broker network round-trip   & --- (separate)                    & $\sim$30\,ms (additional, on the live path) \\
 Clock frequency              & 200\,MHz (5\,ns period)           & --- \\
 ITCH ingest rate             & 1 byte/cycle = \textbf{200\,MB/s} & --- \\
 Order book                   & top-4 levels/side, 256 live orders & --- \\
@@ -291,11 +293,11 @@ Verification                 & \textbf{81/81} tests, golden-model diff & --- \\
 \begin{tikzpicture}
 \node[note, text width=\linewidth]{%
 \textbf{Done:} all RTL written, lint-clean, 81/81 cocotb tests passing; latency
-measured at 195\,ns by the on-chip counter \emph{in cycle-accurate simulation}; host
+measured at 205\,ns by the on-chip counter \emph{in cycle-accurate simulation}; host
 software (bridge, risk guard, golden model, live feed) in place.\\[3pt]
 \textbf{Pending:} Vivado synthesis / timing closure on the VU9P part (to be run on a
 larger-RAM machine), PCIe DMA read path, and end-to-end live paper-trading runs. The
-195\,ns figure is the design target validated in simulation by the hardware counter; it
+205\,ns figure is the design target validated in simulation by the hardware counter; it
 has not yet been re-confirmed on physical silicon.%
 };
 \end{tikzpicture}
