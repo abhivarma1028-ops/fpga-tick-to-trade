@@ -1,0 +1,300 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date              : Fri Jul 31 16:50:03 2026
+| Host              : abhishek-VMware-Virtual-Platform running 64-bit Ubuntu 24.04.2 LTS
+| Command           : report_bus_skew -warn_on_violation -file tick_to_trade_mc_top_bus_skew_routed.rpt -pb tick_to_trade_mc_top_bus_skew_routed.pb -rpx tick_to_trade_mc_top_bus_skew_routed.rpx
+| Design            : tick_to_trade_mc_top
+| Device            : xcu200-fsgd2104
+| Speed File        : -2  PRODUCTION 1.28 03-30-2022
+| Design State      : Routed
+| Temperature Grade : E
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Bus Skew Report
+
+Table of Contents
+-----------------
+1. Bus Skew Report Summary
+2. Bus Skew Report Per Constraint
+
+1. Bus Skew Report Summary
+--------------------------
+
+Id  Position  From                            To                              Corner  Requirement(ns)  Actual(ns)  Slack(ns)
+--  --------  ------------------------------  ------------------------------  ------  ---------------  ----------  ---------
+1   13        [get_cells -hierarchical -filter {NAME =~ *wgray_reg* || NAME =~ *wbin_reg*}]
+                                              [get_cells -hierarchical -filter {NAME =~ *wq_reg*}]
+                                                                              Slow              4.000       0.528      3.472
+2   14        [get_cells -hierarchical -filter {NAME =~ *rgray_reg* || NAME =~ *rbin_reg*}]
+                                              [get_cells -hierarchical -filter {NAME =~ *rq_reg*}]
+                                                                              Slow              4.000       0.598      3.402
+3   15        [get_cells -hierarchical -filter {NAME =~ *data_hold_reg*}]
+                                              [get_cells -hierarchical -filter {NAME =~ *dst_data_reg*}]
+                                                                              Slow              4.000       1.006      2.994
+
+
+2. Bus Skew Report Per Constraint
+---------------------------------
+
+Id: 1
+set_bus_skew -from [get_cells -hierarchical -filter {NAME =~ *wgray_reg* || NAME =~ *wbin_reg*}] -to [get_cells -hierarchical -filter {NAME =~ *wq_reg*}] 4.000
+Requirement: 4.000ns
+Endpoints: 32
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_line              clk_core              u_ingress/u_fifo/wq_reg[0][7]/D
+                                                                            u_ingress/u_fifo/wq_reg[0][3]/D
+                                                                                                            Slow         0.528      3.472
+
+
+Slack (MET) :             3.472ns  (requirement - actual skew)
+  Endpoint Source:        u_ingress/u_fifo/wgray_reg[7]/C
+                            (rising edge-triggered cell FDCE clocked by clk_line)
+  Endpoint Destination:   u_ingress/u_fifo/wq_reg[0][7]/D
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Reference Source:       u_ingress/u_fifo/wgray_reg[3]/C
+                            (rising edge-triggered cell FDCE clocked by clk_line)
+  Reference Destination:  u_ingress/u_fifo/wq_reg[0][3]/D
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            4.000ns
+  Endpoint Relative Delay:    0.585ns
+  Reference Relative Delay:   0.057ns
+  Relative CRPR:              0.000ns
+  Actual Bus Skew:            0.528ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_line rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_line (IN)
+                         net (fo=138, unset)          0.028     0.028    u_ingress/u_fifo/clk_line
+    SLICE_X103Y480       FDCE                                         r  u_ingress/u_fifo/wgray_reg[7]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X103Y480       FDCE (Prop_CFF_SLICEL_C_Q)
+                                                      0.079     0.107 r  u_ingress/u_fifo/wgray_reg[7]/Q
+                         net (fo=1, routed)           0.523     0.630    u_ingress/u_fifo/wgray[7]
+    SLICE_X103Y480       FDCE                                         r  u_ingress/u_fifo/wq_reg[0][7]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.020     0.020    u_ingress/u_fifo/clk_core
+    SLICE_X103Y480       FDCE                                         r  u_ingress/u_fifo/wq_reg[0][7]/C
+                         clock pessimism              0.000     0.020    
+    SLICE_X103Y480       FDCE (Setup_GFF2_SLICEL_C_D)
+                                                      0.025     0.045    u_ingress/u_fifo/wq_reg[0][7]
+  -------------------------------------------------------------------
+                         data arrival                           0.630    
+                         clock arrival                          0.045    
+  -------------------------------------------------------------------
+                         relative delay                         0.585    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_line rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_line (IN)
+                         net (fo=138, unset)          0.020     0.020    u_ingress/u_fifo/clk_line
+    SLICE_X103Y481       FDCE                                         r  u_ingress/u_fifo/wgray_reg[3]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X103Y481       FDCE (Prop_GFF_SLICEL_C_Q)
+                                                      0.059     0.079 r  u_ingress/u_fifo/wgray_reg[3]/Q
+                         net (fo=1, routed)           0.068     0.147    u_ingress/u_fifo/wgray[3]
+    SLICE_X103Y479       FDCE                                         r  u_ingress/u_fifo/wq_reg[0][3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.028     0.028    u_ingress/u_fifo/clk_core
+    SLICE_X103Y479       FDCE                                         r  u_ingress/u_fifo/wq_reg[0][3]/C
+                         clock pessimism              0.000     0.028    
+    SLICE_X103Y479       FDCE (Hold_DFF2_SLICEL_C_D)
+                                                      0.062     0.090    u_ingress/u_fifo/wq_reg[0][3]
+  -------------------------------------------------------------------
+                         data arrival                           0.147    
+                         clock arrival                          0.090    
+  -------------------------------------------------------------------
+                         relative delay                         0.057    
+
+
+
+Id: 2
+set_bus_skew -from [get_cells -hierarchical -filter {NAME =~ *rgray_reg* || NAME =~ *rbin_reg*}] -to [get_cells -hierarchical -filter {NAME =~ *rq_reg*}] 4.000
+Requirement: 4.000ns
+Endpoints: 32
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_host              clk_core              u_axil_r/u_fifo/rq_reg[0][1]/D  u_ingress/u_fifo/rq_reg[0][1]/D
+                                                                                                            Slow         0.598      3.402
+
+
+Slack (MET) :             3.402ns  (requirement - actual skew)
+  Endpoint Source:        u_axil_r/u_fifo/rgray_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by clk_host)
+  Endpoint Destination:   u_axil_r/u_fifo/rq_reg[0][1]/D
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Reference Source:       u_ingress/u_fifo/rgray_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Reference Destination:  u_ingress/u_fifo/rq_reg[0][1]/D
+                            (rising edge-triggered cell FDCE clocked by clk_line)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            4.000ns
+  Endpoint Relative Delay:    0.680ns
+  Reference Relative Delay:   0.082ns
+  Relative CRPR:              0.000ns
+  Actual Bus Skew:            0.598ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_host rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_host (IN)
+                         net (fo=145, unset)          0.030     0.030    u_axil_r/u_fifo/clk_host
+    SLICE_X97Y556        FDCE                                         r  u_axil_r/u_fifo/rgray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X97Y556        FDCE (Prop_EFF2_SLICEM_C_Q)
+                                                      0.079     0.109 r  u_axil_r/u_fifo/rgray_reg[1]/Q
+                         net (fo=1, routed)           0.617     0.726    u_axil_r/u_fifo/rgray_reg_n_0_[1]
+    SLICE_X97Y556        FDCE                                         r  u_axil_r/u_fifo/rq_reg[0][1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.021     0.021    u_axil_r/u_fifo/clk_core
+    SLICE_X97Y556        FDCE                                         r  u_axil_r/u_fifo/rq_reg[0][1]/C
+                         clock pessimism              0.000     0.021    
+    SLICE_X97Y556        FDCE (Setup_DFF2_SLICEM_C_D)
+                                                      0.025     0.046    u_axil_r/u_fifo/rq_reg[0][1]
+  -------------------------------------------------------------------
+                         data arrival                           0.726    
+                         clock arrival                          0.046    
+  -------------------------------------------------------------------
+                         relative delay                         0.680    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.020     0.020    u_ingress/u_fifo/clk_core
+    SLICE_X103Y483       FDCE                                         r  u_ingress/u_fifo/rgray_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X103Y483       FDCE (Prop_AFF_SLICEL_C_Q)
+                                                      0.058     0.078 r  u_ingress/u_fifo/rgray_reg[1]/Q
+                         net (fo=1, routed)           0.095     0.173    u_ingress/u_fifo/rgray[1]
+    SLICE_X103Y483       FDCE                                         r  u_ingress/u_fifo/rq_reg[0][1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_line rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_line (IN)
+                         net (fo=138, unset)          0.029     0.029    u_ingress/u_fifo/clk_line
+    SLICE_X103Y483       FDCE                                         r  u_ingress/u_fifo/rq_reg[0][1]/C
+                         clock pessimism              0.000     0.029    
+    SLICE_X103Y483       FDCE (Hold_HFF2_SLICEL_C_D)
+                                                      0.062     0.091    u_ingress/u_fifo/rq_reg[0][1]
+  -------------------------------------------------------------------
+                         data arrival                           0.173    
+                         clock arrival                          0.091    
+  -------------------------------------------------------------------
+                         relative delay                         0.082    
+
+
+
+Id: 3
+set_bus_skew -from [get_cells -hierarchical -filter {NAME =~ *data_hold_reg*}] -to [get_cells -hierarchical -filter {NAME =~ *dst_data_reg*}] 4.000
+Requirement: 4.000ns
+Endpoints: 5
+
+From Clock            To Clock              Endpoint Pin                    Reference Pin                   Corner  Actual(ns)  Slack(ns)
+--------------------  --------------------  ------------------------------  ------------------------------  ------  ----------  ---------
+clk_host              clk_core              u_cfg/dst_data_reg[0]/D         u_risk_evt/dst_data_reg[1]/D    Slow         1.006      2.994
+
+
+Slack (MET) :             2.994ns  (requirement - actual skew)
+  Endpoint Source:        u_cfg/data_hold_reg[0]/C
+                            (rising edge-triggered cell FDCE clocked by clk_host)
+  Endpoint Destination:   u_cfg/dst_data_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Reference Source:       u_risk_evt/data_hold_reg[1]/C
+                            (rising edge-triggered cell FDCE clocked by clk_core)
+  Reference Destination:  u_risk_evt/dst_data_reg[1]/D
+                            (rising edge-triggered cell FDCE clocked by clk_host)
+  Path Type:              Bus Skew (Max at Slow Process Corner)
+  Requirement:            4.000ns
+  Endpoint Relative Delay:    1.133ns
+  Reference Relative Delay:   0.127ns
+  Relative CRPR:              0.000ns
+  Actual Bus Skew:            1.006ns  (Endpoint Relative Delay - Reference Relative Delay - Relative CRPR)
+
+Endpoint path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_host rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_host (IN)
+                         net (fo=145, unset)          0.030     0.030    u_cfg/clk_host
+    SLICE_X110Y555       FDCE                                         r  u_cfg/data_hold_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X110Y555       FDCE (Prop_HFF_SLICEM_C_Q)
+                                                      0.079     0.109 r  u_cfg/data_hold_reg[0]/Q
+                         net (fo=1, routed)           1.070     1.179    u_cfg/data_hold[0]
+    SLICE_X110Y555       FDCE                                         r  u_cfg/dst_data_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.021     0.021    u_cfg/clk_core
+    SLICE_X110Y555       FDCE                                         r  u_cfg/dst_data_reg[0]/C
+                         clock pessimism              0.000     0.021    
+    SLICE_X110Y555       FDCE (Setup_DFF2_SLICEM_C_D)
+                                                      0.025     0.046    u_cfg/dst_data_reg[0]
+  -------------------------------------------------------------------
+                         data arrival                           1.179    
+                         clock arrival                          0.046    
+  -------------------------------------------------------------------
+                         relative delay                         1.133    
+
+Reference path:
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_core rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_core (IN)
+                         net (fo=5569, unset)         0.021     0.021    u_risk_evt/clk_core
+    SLICE_X99Y550        FDCE                                         r  u_risk_evt/data_hold_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X99Y550        FDCE (Prop_GFF2_SLICEM_C_Q)
+                                                      0.060     0.081 r  u_risk_evt/data_hold_reg[1]/Q
+                         net (fo=1, routed)           0.138     0.219    u_risk_evt/data_hold_reg_n_0_[1]
+    SLICE_X99Y550        FDCE                                         r  u_risk_evt/dst_data_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_host rise edge)
+                                                      0.000     0.000 r  
+                                                      0.000     0.000 r  clk_host (IN)
+                         net (fo=145, unset)          0.030     0.030    u_risk_evt/clk_host
+    SLICE_X99Y550        FDCE                                         r  u_risk_evt/dst_data_reg[1]/C
+                         clock pessimism              0.000     0.030    
+    SLICE_X99Y550        FDCE (Hold_AFF2_SLICEM_C_D)
+                                                      0.062     0.092    u_risk_evt/dst_data_reg[1]
+  -------------------------------------------------------------------
+                         data arrival                           0.219    
+                         clock arrival                          0.092    
+  -------------------------------------------------------------------
+                         relative delay                         0.127    
+
+
+

@@ -1,0 +1,12 @@
+# handshake_mcp — OUT-OF-CONTEXT ONLY constraints
+# ===========================================================================
+# Package this file with USED_IN = out_of_context  (NOT synthesis/implementation).
+# See async_fifo_ooc.xdc for why these must not reach the integrated design.
+# The constraints that survive integration live in handshake_mcp.xdc.
+#
+#   src_clk : host / CSR domain
+#   dst_clk : core domain
+create_clock -name src_clk -period 8.000 [get_ports src_clk]
+create_clock -name dst_clk -period 4.000 [get_ports dst_clk]
+
+set_clock_groups -asynchronous -group [get_clocks src_clk] -group [get_clocks dst_clk]

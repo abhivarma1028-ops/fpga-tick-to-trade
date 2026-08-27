@@ -1,0 +1,56 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Fri Jul 31 16:51:29 2026
+| Host         : abhishek-VMware-Virtual-Platform running 64-bit Ubuntu 24.04.2 LTS
+| Command      : report_drc -file /home/abhishek/Projects/HFT/vivado/mc_top/mc_top.runs/impl_1/post_route_drc.rpt
+| Design       : tick_to_trade_mc_top
+| Device       : xcu200-fsgd2104-2-e
+| Speed File   : -2
+| Design State : Fully Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: netlist
+          Floorplan: impl_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+             Max checks: <unlimited>
+             Checks found: 1
++-----------+----------+-------------------+--------+
+| Rule      | Severity | Description       | Checks |
++-----------+----------+-------------------+--------+
+| RTSTAT-10 | Warning  | No routable loads | 1      |
++-----------+----------+-------------------+--------+
+
+2. REPORT DETAILS
+-----------------
+RTSTAT-10#1 Warning
+No routable loads  
+87 net(s) have no routable loads. The problem bus(es) and/or net(s) are u_axil_r/u_fifo/mem_reg_0_3_0_13/DOA0,
+u_axil_r/u_fifo/mem_reg_0_3_0_13/DOA1,
+u_axil_r/u_fifo/mem_reg_0_3_14_27/DOA0,
+u_axil_r/u_fifo/mem_reg_0_3_14_27/DOA1,
+u_axil_r/u_fifo/mem_reg_0_3_28_33/DOA0,
+u_axil_r/u_fifo/mem_reg_0_3_28_33/DOA1,
+u_egress/u_fifo/mem_reg_0_63_35_41/DOA,
+u_egress/u_fifo/mem_reg_0_63_35_41/DOB,
+u_egress/u_fifo/mem_reg_0_63_42_48/DOA,
+u_egress/u_fifo/mem_reg_0_63_42_48/DOB,
+u_egress/u_fifo/mem_reg_0_63_49_55/DOA,
+u_egress/u_fifo/mem_reg_0_63_56_62/DOA,
+u_egress/u_fifo/mem_reg_0_63_70_72/DOA,
+u_egress/u_fifo/mem_reg_0_63_70_72/DOB,
+u_egress/u_fifo/mem_reg_0_63_7_13/DOA
+ (the first 15 of 85 listed nets/buses).
+Related violations: <none>
+
+
