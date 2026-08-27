@@ -36,6 +36,9 @@ from portfolio import Portfolio, TICKS_PER_USD
 from hft_logic import PreTradeGauntlet, HFTConfig
 from market_maker import MarketMaker, MMConfig
 from strategy_sw import SoftwareStrategy
+from strategy_registry import StrategyBook, AVAILABLE as STRATS_AVAILABLE
+from crypto_feed import CryptoFeed, TICKS_PER_USD as FEED_TICKS, SIZE_SCALE
+from alpaca_bridge import AlpacaBridge, CryptoRiskConfig, Decision as BrDecision
 
 FPGA_NS = 205
 MAG7 = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA"]
@@ -72,7 +75,91 @@ class Controller:
         self.log = deque(maxlen=60)
         self._was_halted = False
         self.lock = threading.Lock()
+        # ---------------- crypto / live trading ----------------
+        # Separate from the equity simulator above: its own feed, its own
+        # strategies, its own broker. `trading` is the arm switch the page's
+        # "Begin Trading" button flips -- quotes stream regardless, but nothing
+        # is routed to the broker until it is on.
+        self.crypto_symbol = "BTC/USD"
+        self.trading       = False
+        self.strategy_book = StrategyBook(enabled=["market_maker"], half_spread=200)
+        self.bridge        = AlpacaBridge(CryptoRiskConfig(symbol=self.crypto_symbol),
+                                          paper=True, dry_run=True)
+        self.feed          = CryptoFeed(symbol=self.crypto_symbol,
+                                        on_quote=self._on_quote, source="auto")
+        self.crypto_mark   = 0.0
+        self.crypto_bid    = 0
+        self.crypto_ask    = 0
+        self.n_intents     = 0
+        self.n_routed      = 0
+        self.n_rejected    = 0
+        self.broker_log    = deque(maxlen=25)
+        self.feed.start()
+
         self.event("server started (mode=%s, %d symbols)" % (self.mode, len(self.symbols)))
+        self.event("crypto feed %s source=%s" % (self.crypto_symbol, self.feed.source))
+
+    def sim_enabled(self) -> bool:
+        """The equity simulator runs only when the live feed is not."""
+        return not (self.trading and self.feed.status()["live"])
+
+    # -- crypto trading ----------------------------------------------------
+    def _on_quote(self, bid_t, bid_s, ask_t, ask_s):
+        """One top-of-book update from the crypto feed.
+
+        Every enabled strategy sees it, so their P&L is comparable on identical
+        data. Fills are MODELLED here (dry-run): a taker crosses the spread so it
+        fills at its own price; a maker only fills when the market trades through
+        its resting quote. Once the bridge is armed for real, fills should come
+        from the broker instead -- this model is for the dry-run P&L only.
+        """
+        self.crypto_bid, self.crypto_ask = bid_t, ask_t
+        self.crypto_mark = (bid_t + ask_t) / 2.0 / FEED_TICKS
+        if not self.trading or self.paused or not self.running:
+            return
+        for name, intent in self.strategy_book.on_book(bid_t, bid_s, ask_t, ask_s):
+            self.n_intents += 1
+            ok, why = self.bridge.send_decision_sync(
+                BrDecision(action=intent.action, price_ticks=intent.price_ticks,
+                           size=intent.size), rate_key=name)
+            if ok:
+                self.n_routed += 1
+            else:
+                self.n_rejected += 1
+                self.broker_log.appendleft("%s  %s %s blocked: %s" % (
+                    time.strftime("%H:%M:%S"), name,
+                    "BUY" if intent.action == 0 else "SELL", why))
+                continue
+
+            # Fill model (dry-run only; once armed for real, fills come from the
+            # broker). A taker crosses the spread, so it fills at its own price.
+            # A maker rests INSIDE the spread and is therefore best bid/ask -- it
+            # fills when the market comes to it, i.e. when the touch reaches our
+            # price. Requiring the market to cross all the way through us was too
+            # strict: the maker quotes 200 ticks inside a ~$2 BTC spread and never
+            # filled once in 2103 quotes.
+            filled = (not intent.passive) or (
+                (intent.action == 0 and bid_t <= intent.price_ticks) or
+                (intent.action == 1 and ask_t >= intent.price_ticks))
+            if filled:
+                # Book the ACTUAL traded quantity, not the RTL lot count: one
+                # RTL lot (100 "shares") is qty_per_lot of the base asset.
+                qty  = (intent.size / 100.0) * self.bridge.cfg.qty_per_lot
+                fee  = (intent.price_ticks / FEED_TICKS) * qty * (self.portfolio.fee_bps / 1e4)
+                self.strategy_book.on_fill(name, intent.action, qty,
+                                           intent.price_ticks, fee_usd=fee)
+
+                # Also book it into the MAIN portfolio, so the dashboard's P&L,
+                # equity curve, trade blotter and per-symbol book show the real
+                # BTC trading instead of the synthetic equity walk. Portfolio
+                # wants integer sizes, so trade in "micro-BTC" (1e-6 BTC) units
+                # -- a fractional qty would silently truncate to zero.
+                micro = max(1, int(round(qty * 1_000_000)))
+                self.portfolio.mark_price(self.crypto_symbol,
+                                          int((bid_t + ask_t) // 2))
+                self.portfolio.set_quote(self.crypto_symbol, bid_t, ask_t)
+                self.portfolio.on_fill(self.crypto_symbol, intent.action, micro,
+                                       intent.price_ticks, fee=fee)
 
     # -- helpers -----------------------------------------------------------
     def event(self, msg, level="info"):
@@ -173,6 +260,90 @@ class Controller:
             elif cmd == "mode":
                 self.mode = "taker" if self.mode == "maker" else "maker"
                 self.event("mode -> %s" % self.mode)
+            elif cmd == "feed":
+                # Switch the market-data source at runtime. Going to alpaca needs
+                # credentials; CryptoFeed downgrades to sim on its own if they are
+                # missing, and we report what actually happened.
+                want = data.get("source", "sim")
+                if want not in ("sim", "alpaca"):
+                    return {"ok": False, "error": "source must be sim or alpaca"}
+                if want == "sim" and not self.bridge.dry_run:
+                    return {"ok": False, "error":
+                            "refusing to switch to the simulated feed while the "
+                            "broker is armed for real orders — set broker to "
+                            "DRY-RUN first"}
+                self.trading = False          # always disarm across a feed change
+                try:
+                    self.feed.stop()
+                except Exception:
+                    pass
+                self.feed = CryptoFeed(symbol=self.crypto_symbol,
+                                       on_quote=self._on_quote, source=want)
+                self.feed.start()
+                self.event("feed -> %s (trading disarmed)" % self.feed.source, "warn")
+                if self.feed.source != want:
+                    return {"ok": True, "warning":
+                            "requested %s, got %s (no alpaca credentials)"
+                            % (want, self.feed.source), "source": self.feed.source}
+            elif cmd == "begin_trade":
+                # HARD GUARD: never send real orders priced off simulated data.
+                # A simulated book with a live broker is the worst combination in
+                # this whole system -- real money moving on prices that do not
+                # exist -- so it is refused outright rather than warned about.
+                if not self.bridge.dry_run and not self.feed.status()["live"]:
+                    return {"ok": False, "error":
+                            "REFUSED: broker is %s but the feed is SIMULATED. "
+                            "Switch the feed to alpaca (needs APCA_API_KEY_ID / "
+                            "APCA_API_SECRET_KEY) or set the broker to DRY-RUN."
+                            % self.bridge.stats()["mode"]}
+                # Arm routing. Quotes already stream; this is what lets intents
+                # reach the broker at all.
+                self.trading = True
+                self.running, self.paused = True, False
+                self.event("BEGIN TRADING  %s  [%s]  strategies=%s" % (
+                    self.crypto_symbol, self.bridge.stats()["mode"],
+                    ",".join(self.strategy_book.adapters) or "none"), "warn")
+            elif cmd == "stop_trade":
+                self.trading = False
+                self.event("TRADING STOPPED", "warn")
+            elif cmd == "strategy":
+                name = data.get("name")
+                if name not in STRATS_AVAILABLE:
+                    return {"ok": False, "error": "unknown strategy %r" % name}
+                if data.get("on"):
+                    self.strategy_book.enable(name, half_spread=self.mm.cfg.half_spread_ticks,
+                                              threshold=self.threshold)
+                    self.event("strategy ON  %s" % name)
+                else:
+                    self.strategy_book.disable(name)
+                    self.event("strategy OFF %s" % name)
+            elif cmd == "broker":
+                # dryrun -> paper -> live. Going live needs confirm=True from the
+                # page AND credentials; without either it stays where it is.
+                want = data.get("mode", "dryrun")
+                if want == "live" and not data.get("confirm"):
+                    return {"ok": False, "error": "live mode requires confirm"}
+                if want in ("paper", "live") and not self.feed.status()["live"]:
+                    return {"ok": False, "error":
+                            "REFUSED: cannot arm %s while the feed is SIMULATED. "
+                            "Switch the feed to alpaca first." % want.upper()}
+                mode = self.bridge.arm(paper=(want != "live"), live=(want != "dryrun"))
+                self.event("broker -> %s" % mode, "warn" if mode == "LIVE" else "info")
+                if mode != want.upper() and want != "dryrun":
+                    return {"ok": True, "warning": "requested %s, got %s "
+                            "(missing SDK or credentials)" % (want, mode), "mode": mode}
+            elif cmd == "max_position":
+                try:
+                    self.bridge.cfg.max_position_usd = max(1.0, float(data.get("value", 10000)))
+                    self.event("max exposure -> $%.2f" % self.bridge.cfg.max_position_usd)
+                except (TypeError, ValueError):
+                    return {"ok": False, "error": "bad exposure"}
+            elif cmd == "max_notional":
+                try:
+                    self.bridge.cfg.max_notional_usd = max(1.0, float(data.get("value", 100)))
+                    self.event("max notional -> $%.2f" % self.bridge.cfg.max_notional_usd)
+                except (TypeError, ValueError):
+                    return {"ok": False, "error": "bad notional"}
             elif cmd == "reset_kill":
                 self.portfolio.halted = False; self.portfolio.halt_reason = None
                 self.portfolio.peak_equity = self.portfolio.equity()
@@ -230,7 +401,8 @@ class Controller:
         return {
             "updated": time.strftime("%H:%M:%S"),
             "status": {"mode": self.mode, "symbols": self.symbols, "execute": False,
-                       "source": "SIM", "uptime_s": round(time.time() - self.started, 1),
+                       "source": ("ALPACA LIVE" if not self.sim_enabled() else "SIM"),
+                       "uptime_s": round(time.time() - self.started, 1),
                        "halted": pf.halted, "halt_reason": pf.halt_reason,
                        "running": self.running, "paused": self.paused,
                        "threshold": self.threshold,
@@ -266,12 +438,35 @@ class Controller:
             "realized_curve": pf.realized_curve[-200:],
             "events": list(self.events),
             "log": list(self.log),
+            # ---------------- crypto / live trading ----------------
+            "crypto": dict(self.feed.status(), trading=self.trading,
+                           intents=self.n_intents, routed=self.n_routed,
+                           rejected=self.n_rejected,
+                           # True only when real orders would ride on real prices
+                           safe_to_arm=(self.bridge.dry_run
+                                        or self.feed.status()["live"])),
+            "broker": dict(self.bridge.stats(),
+                           max_notional=self.bridge.cfg.max_notional_usd,
+                           max_position=self.bridge.cfg.max_position_usd,
+                           log=list(self.broker_log)),
+            "strategies": {
+                "available": STRATS_AVAILABLE,
+                "enabled":   list(self.strategy_book.adapters),
+                "rows":      self.strategy_book.stats(self.crypto_mark),
+                "totals":    self.strategy_book.totals(self.crypto_mark),
+            },
         }
 
 
 def _sim_loop(ctrl):
+    """Synthetic equity ticks. Stands down entirely while the live crypto feed
+    is driving the dashboard -- otherwise the panels blend fake MAG7 activity
+    with real BTC trading and none of the numbers mean anything."""
     period = 1.0 / ctrl.rate
     while True:
+        if not ctrl.sim_enabled():
+            time.sleep(0.5)
+            continue
         ctrl.step()
         time.sleep(period)
 

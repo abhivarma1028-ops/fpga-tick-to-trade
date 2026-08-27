@@ -118,6 +118,49 @@
 </div>
 
 <div class="app"><div class="main">
+  <!-- ===== CRYPTO / BROKER (BTC via Alpaca) ===== -->
+  <section class="card" id="cryptocard">
+    <h2>Crypto Trading &mdash; <span id="cx_sym" class="mono">BTC/USD</span>
+        <span class="pill" id="cx_src">–</span>
+        <span class="pill" id="cx_broker">–</span>
+        <span class="pill" id="cx_arm">DISARMED</span></h2>
+    <div class="ctl">
+      <button id="cx_begin" class="danger">BEGIN TRADING</button>
+      <button id="cx_stop">STOP TRADING</button>
+      <span class="ctl-sep"></span>
+      <span class="muted">feed</span>
+      <button data-feed="sim">SIM</button>
+      <button data-feed="alpaca">ALPACA LIVE</button>
+      <span class="ctl-sep"></span>
+      <span class="muted">broker</span>
+      <button data-broker="dryrun">DRY-RUN</button>
+      <button data-broker="paper">PAPER</button>
+      <button data-broker="live" class="danger">LIVE</button>
+      <span class="ctl-sep"></span>
+      <span class="muted">max notional $</span>
+      <input id="cx_notional" type="number" step="10" style="width:84px">
+      <button id="cx_setnot">set</button>
+    </div>
+    <div class="ctl" style="margin-top:6px">
+      <span class="muted">strategies</span><span id="cx_strats"></span>
+    </div>
+    <div id="cx_warn" style="display:none;margin-top:6px;padding:6px 9px;border-radius:4px;
+         background:#7a1f1f;color:#fff;font-size:12px"></div>
+    <div class="ctl" style="margin-top:6px">
+      <span class="mono" id="cx_book">bid – / ask –</span>
+      <span class="ctl-sep"></span>
+      <span class="mono" id="cx_flow">intents – · routed – · blocked –</span>
+    </div>
+    <table style="margin-top:8px;width:100%">
+      <thead><tr><th>strategy</th><th>kind</th><th>dec</th><th>fills</th>
+                 <th>inventory</th><th>realized</th><th>unreal</th><th>fees</th><th>net</th></tr></thead>
+      <tbody id="cx_rows"><tr><td colspan="9" class="muted">no strategies enabled</td></tr></tbody>
+      <tfoot><tr><th>TOTAL</th><th></th><th id="cx_tdec"></th><th id="cx_tfill"></th><th></th>
+                 <th id="cx_treal"></th><th id="cx_tunreal"></th><th id="cx_tfees"></th><th id="cx_tnet"></th></tr></tfoot>
+    </table>
+    <div class="mono muted" id="cx_blocklog" style="margin-top:6px;font-size:11px"></div>
+  </section>
+
   <!-- CONTROLS (always visible) -->
   <section class="card">
     <h2>Controls</h2>
@@ -398,6 +441,85 @@ function drawPriceChart(books){
 }
 const setV=(id,v)=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v;};
 
+
+// ===== crypto / broker panel =====
+document.getElementById('cx_begin').onclick=()=>{
+  if(!confirm('Arm order routing for BTC/USD?\n\nOrders will be sent using the CURRENT broker mode.'))return;
+  ctl('begin_trade');};
+document.getElementById('cx_stop').onclick=()=>ctl('stop_trade');
+document.getElementById('cx_setnot').onclick=()=>ctl('max_notional',{value:+document.getElementById('cx_notional').value});
+document.querySelectorAll('[data-feed]').forEach(b=>b.onclick=()=>{
+  const src=b.dataset.feed;
+  if(src==='sim'&&!confirm('Switch to the SIMULATED feed?\n\nTrading will be disarmed.'))return;
+  ctl('feed',{source:src});});
+document.querySelectorAll('[data-broker]').forEach(b=>b.onclick=()=>{
+  const m=b.dataset.broker;
+  // LIVE means real money; make it an explicit, separate confirmation.
+  if(m==='live'){
+    if(!confirm('LIVE MODE — real money.\n\nOrders will be sent to your live Alpaca account.\nContinue?'))return;
+    return ctl('broker',{mode:'live',confirm:true});
+  }
+  ctl('broker',{mode:m});});
+
+function renderCrypto(s){
+  const c=s.crypto||{},b=s.broker||{},st=s.strategies||{};
+  const $=id=>document.getElementById(id);
+  $('cx_sym').textContent=c.symbol||'–';
+  $('cx_src').textContent=(c.source||'–')+(c.live?' LIVE FEED':' (simulated feed)');
+  $('cx_broker').textContent='broker: '+(b.mode||'–');
+  // Simulated prices + a real broker is the one combination that must never
+  // run; the server refuses it, and this makes the reason visible.
+  const w=$('cx_warn'), simFeed=!c.live, realBroker=(b.mode&&b.mode!=='dry-run');
+  if(simFeed&&realBroker){
+    w.style.display='block';
+    w.textContent='BLOCKED — broker is '+b.mode+' but the feed is SIMULATED. '
+                 +'Real orders will not be sent on prices that do not exist. '
+                 +'Switch the feed to ALPACA LIVE, or set the broker to DRY-RUN.';
+  }else if(simFeed){
+    w.style.display='block'; w.style.background='#5a4a1f';
+    w.textContent='SIMULATED FEED — dry-run only. Set APCA_API_KEY_ID / '
+                 +'APCA_API_SECRET_KEY and switch the feed to ALPACA LIVE to trade for real.';
+  }else{ w.style.display='none'; w.style.background='#7a1f1f'; }
+  const arm=$('cx_arm');
+  arm.textContent=c.trading?'ARMED':'DISARMED';
+  arm.style.background=c.trading?'#7a1f1f':'';
+  $('cx_book').textContent='bid '+(c.bid||0).toLocaleString()+' x'+(c.bid_qty||0)
+                          +'   /   ask '+(c.ask||0).toLocaleString()+' x'+(c.ask_qty||0)
+                          +'   mid '+(c.mid||0).toLocaleString();
+  $('cx_flow').textContent='intents '+(c.intents||0)+' · routed '+(c.routed||0)
+                          +' · blocked '+(c.rejected||0)
+                          +' · position '+(b.position_qty||0)+' ($'+(b.position_usd||0)+')';
+  if(document.activeElement!==$('cx_notional'))$('cx_notional').value=b.max_notional||'';
+
+  // strategy toggles
+  const wrap=$('cx_strats');
+  if(wrap.dataset.built!=='1'&&(st.available||[]).length){
+    wrap.innerHTML=(st.available||[]).map(n=>
+      '<label style="margin-right:10px"><input type="checkbox" data-strat="'+n+'"> '+n+'</label>').join('');
+    wrap.querySelectorAll('[data-strat]').forEach(cb=>cb.onchange=()=>
+      ctl('strategy',{name:cb.dataset.strat,on:cb.checked}));
+    wrap.dataset.built='1';
+  }
+  const en=st.enabled||[];
+  wrap.querySelectorAll('[data-strat]').forEach(cb=>{
+    if(document.activeElement!==cb)cb.checked=en.includes(cb.dataset.strat);});
+
+  // per-strategy P&L
+  const rows=st.rows||[],tb=$('cx_rows');
+  const money=v=>'<span class="'+(v>0?'hpos':(v<0?'hneg':''))+'">'+(v||0).toFixed(2)+'</span>';
+  tb.innerHTML=rows.length?rows.map(r=>
+    '<tr><td class="mono">'+r.name+'</td><td class="muted">'+r.kind+'</td>'
+    +'<td>'+r.decisions+'</td><td>'+r.fills+'</td><td>'+r.inventory+'</td>'
+    +'<td>'+money(r.realized)+'</td><td>'+money(r.unrealized)+'</td>'
+    +'<td class="muted">'+(r.fees||0).toFixed(2)+'</td><td><b>'+money(r.net)+'</b></td></tr>').join('')
+    :'<tr><td colspan="9" class="muted">no strategies enabled</td></tr>';
+  const t=st.totals||{};
+  $('cx_tdec').textContent=t.decisions||0; $('cx_tfill').textContent=t.fills||0;
+  $('cx_treal').innerHTML=money(t.realized); $('cx_tunreal').innerHTML=money(t.unrealized);
+  $('cx_tfees').textContent=(t.fees||0).toFixed(2); $('cx_tnet').innerHTML='<b>'+money(t.net)+'</b>';
+  $('cx_blocklog').innerHTML=(b.log||[]).slice(0,5).map(l=>l.replace(/</g,'&lt;')).join('<br>');
+}
+
 async function tick(){
   if(frozen)return;
   let s;const _t0=performance.now();
@@ -560,6 +682,10 @@ async function tick(){
   if((s.n_trades||0)>prevTrades){const c=document.querySelector('#trades');c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash');beep();}prevTrades=s.n_trades||0;
 
   const lg=document.getElementById('log');lg.textContent=(s.log||[]).join('\n');lg.scrollTop=lg.scrollHeight;
+
+  // Crypto panel last, and guarded: an older run_state.json has no `crypto`
+  // key, and a throw here would abort the whole render.
+  try{ renderCrypto(s); }catch(e){ console.warn('crypto panel:', e); }
 }
 // keyboard shortcuts: space=start/pause, m=mode, t=theme, 1-4=tabs (ignored while typing)
 const TABKEYS={'1':'overview','2':'positions','3':'help','4':'all'};

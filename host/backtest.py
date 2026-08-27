@@ -116,6 +116,28 @@ def run_taker(stream, fee_bps=1.0, threshold=15):
     return _metrics("taker (crosses spread)", pf, curve, fills, fees)
 
 
+def run_ofi(stream, fee_bps=1.0, window=10, threshold=1500):
+    """OFI directional taker (Cont-Kukanov-Stoikov): trades the order-flow signal,
+    crossing the spread like the imbalance taker. Same fill model as run_taker so
+    the two signals are compared apples-to-apples."""
+    from ofi_signal import OFISignal
+    pf = Portfolio()
+    sig = OFISignal(window=window, threshold=threshold)
+    curve, fills, fees = [], 0, 0.0
+    sym = "SIM"
+    for i in range(len(stream) - 1):
+        bp, bs, ap, asz = stream[i]
+        dec = sig.update(bp, bs, ap, asz)
+        if dec is not None:
+            pf.on_fill(sym, dec.action, dec.size, dec.price)
+            fees += (fee_bps / 1e4) * (dec.price / USD) * dec.size
+            fills += 1
+        nbp, _, nap, _ = stream[i + 1]
+        pf.mark_price(sym, (nbp + nap) // 2)
+        curve.append(pf.equity() - fees)
+    return _metrics("OFI taker (order-flow)", pf, curve, fills, fees)
+
+
 def run_maker(stream, cfg: MMConfig = None, fee_bps=1.0,
               fill_prob=0.25, seed=0):
     """Fill model with BOTH revenue and risk, the way a real maker experiences it:
@@ -155,6 +177,34 @@ def run_maker(stream, cfg: MMConfig = None, fee_bps=1.0,
         pf.mark_price(sym, next_mid)
         curve.append(pf.equity() - fees)
     return _metrics("maker (earns spread)", pf, curve, fills, fees)
+
+
+def run_ofi_maker(stream, cfg=None, fee_bps=1.0, fill_prob=0.25, seed=0):
+    """OFI-driven maker — same flat-fill model as run_maker so the ONLY difference
+    vs the plain maker is the OFI drift tilt on the quote centre."""
+    from ofi_maker import OFIMaker
+    pf = Portfolio()
+    mm = OFIMaker(cfg)
+    rng = random.Random(seed)
+    curve, fills, fees = [], 0, 0.0
+    sym = "SIM"
+    for i in range(len(stream) - 1):
+        bp, bs, ap, asz = stream[i]
+        pf.mark_price(sym, (bp + ap) // 2)
+        inv = pf.books[sym].pos if sym in pf.books else 0
+        q = mm.quote(bp, bs, ap, asz, inv)
+        nbp, _, nap, _ = stream[i + 1]
+        if q.bid_size and q.bid_price and rng.random() < fill_prob:
+            pf.on_fill(sym, 0, q.bid_size, q.bid_price)
+            fees += (fee_bps / 1e4) * (q.bid_price / USD) * q.bid_size
+            fills += 1
+        if q.ask_size and q.ask_price and rng.random() < fill_prob:
+            pf.on_fill(sym, 1, q.ask_size, q.ask_price)
+            fees += (fee_bps / 1e4) * (q.ask_price / USD) * q.ask_size
+            fills += 1
+        pf.mark_price(sym, (nbp + nap) // 2)
+        curve.append(pf.equity() - fees)
+    return _metrics("OFI-driven maker", pf, curve, fills, fees)
 
 
 def run_as(stream, cfg=None, fee_bps=1.0, fill_prob=0.25, seed=0):
@@ -230,12 +280,15 @@ def main():
     print(f"=== Backtest: taker vs maker  (n={args.n}, fee={args.fee_bps}bps, "
           f"maker half-spread={args.half_spread} ticks) ===\n")
 
-    agg = {"taker (crosses spread)": [], "maker (earns spread)": [], "A-S maker (optimal)": []}
+    agg = {"taker (crosses spread)": [], "OFI taker (order-flow)": [],
+           "maker (earns spread)": [], "A-S maker (optimal)": [], "OFI-driven maker": []}
     for seed in seeds:
         stream = _stream_ticks(args.n, seed)
         rows = [run_taker(stream, fee_bps=args.fee_bps),
+                run_ofi(stream, fee_bps=args.fee_bps),
                 run_maker(stream, cfg=mmcfg, fee_bps=args.fee_bps, seed=seed),
-                run_as(stream, fee_bps=args.fee_bps, seed=seed)]
+                run_as(stream, fee_bps=args.fee_bps, seed=seed),
+                run_ofi_maker(stream, fee_bps=args.fee_bps, seed=seed)]
         print(f"-- seed {seed} --")
         _print_table(rows)
         print()

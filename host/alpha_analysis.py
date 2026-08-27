@@ -72,11 +72,20 @@ def _pearson(xs, ys):
     return cov / (sx * sy)
 
 
-def analyze(stream, signal_fn, horizons=HORIZONS, min_abs=0.0):
-    """stream = list of (bid_p, bid_s, ask_p, ask_s) in ticks.
-    Returns {H: {hit, edge_ticks, ic, n}} for each horizon."""
+def ofi_series(stream, window=10):
+    """Windowed OFI value per tick (stateful) — for the alpha study."""
+    from ofi_signal import OFISignal
+    s = OFISignal(window=window)
+    return [s.ofi_value(*q) for q in stream]
+
+
+def analyze(stream, signal_fn=None, sig=None, horizons=HORIZONS, min_abs=0.0):
+    """stream = list of (bid_p, bid_s, ask_p, ask_s) in ticks. Pass either a
+    stateless `signal_fn(bp,bs,ap,asz)` OR a precomputed `sig` list (for stateful
+    signals like OFI). Returns {H: {hit, edge_ticks, ic, n}} for each horizon."""
     mids = [(bp + ap) / 2.0 for (bp, _, ap, _) in stream]
-    sig = [signal_fn(*q) for q in stream]
+    if sig is None:
+        sig = [signal_fn(*q) for q in stream]
     out = {}
     for H in horizons:
         hits = signed = 0
@@ -146,11 +155,12 @@ def _print_block(title, results_by_signal):
                   f"{m['edge_ticks']:>14.2f}{m['ic']:>8.3f}")
 
 
-def _aggregate(streams, signal_fn):
-    """Average metrics across several streams (for the synthetic multi-seed sets)."""
+def _aggregate(streams, signal_fn=None, ofi=False):
+    """Average metrics across several streams. signal_fn = stateless signal, or
+    ofi=True to use the stateful windowed-OFI series."""
     accs = {H: {"hit": [], "edge_ticks": [], "ic": [], "n": 0} for H in HORIZONS}
     for st in streams:
-        r = analyze(st, signal_fn)
+        r = analyze(st, sig=ofi_series(st)) if ofi else analyze(st, signal_fn)
         for H in HORIZONS:
             accs[H]["hit"].append(r[H]["hit"])
             accs[H]["edge_ticks"].append(r[H]["edge_ticks"])
@@ -195,21 +205,24 @@ def main():
     rnd_streams = [stream_random(args.n, s) for s in seeds]
     inj_streams = [stream_injected(args.n, s) for s in seeds]
 
-    rnd = {"OBI": _aggregate(rnd_streams, obi), "MPX": _aggregate(rnd_streams, mpx)}
-    inj = {"OBI": _aggregate(inj_streams, obi), "MPX": _aggregate(inj_streams, mpx)}
+    rnd = {"OBI": _aggregate(rnd_streams, obi), "MPX": _aggregate(rnd_streams, mpx),
+           "OFI": _aggregate(rnd_streams, ofi=True)}
+    inj = {"OBI": _aggregate(inj_streams, obi), "MPX": _aggregate(inj_streams, mpx),
+           "OFI": _aggregate(inj_streams, ofi=True)}
     _print_block("RANDOM WALK (null — expect ~50% hit, IC~0)", rnd)
-    _print_block("INJECTED ALPHA (control — expect high hit, IC>0)", inj)
+    _print_block("INJECTED ALPHA (static-imbalance control)", inj)
 
-    chart_sets = [("random walk", rnd["OBI"]), ("injected alpha", inj["OBI"])]
+    chart_sets = [("random walk (OFI)", rnd["OFI"]), ("injected alpha (OFI)", inj["OFI"])]
 
     if args.real_log:
         real = real_stream_ticks(args.real_log)
         if len(real) > max(HORIZONS) + 2:
-            res = {"OBI": analyze(real, obi), "MPX": analyze(real, mpx)}
+            res = {"OBI": analyze(real, obi), "MPX": analyze(real, mpx),
+                   "OFI": analyze(real, sig=ofi_series(real))}
             _print_block(f"REAL DATA ({os.path.basename(args.real_log)}, "
                          f"{len(real)} quotes)", res)
             print("  caveat: real quotes sampled at signal moments (biased, AAPL-only)")
-            chart_sets.append(("real AAPL", res["OBI"]))
+            chart_sets.append(("real AAPL (OFI)", res["OFI"]))
         else:
             print(f"\n(real log {args.real_log}: too few quotes to analyze)")
 
