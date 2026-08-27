@@ -123,3 +123,6 @@ sim/sim_build_ofi/
 
 # timestamped monitor backups (plain *.bak is already covered above)
 reports/*.bak-*
+
+# compile_simlib / impl console logs (the .rpt evidence is kept)
+gatesim/*.stdout

@@ -112,7 +112,12 @@ module market_maker_top #(
         .msg_start(go), .decision_valid(q_valid),
         // drive its clear via our decode (bit0 of a write to 0x104)
         .s_axil_awaddr(9'h104), .s_axil_awvalid(lc_clear), .s_axil_awready(),
-        .s_axil_wdata(32'h1), .s_axil_wvalid(lc_clear), .s_axil_wready(),
+        // wstrb was previously left unconnected (Verilator PINMISSING). Harmless
+        // in practice -- latency_counter's clear decode looks only at wdata[0] --
+        // but an unconnected input is an invitation to a real bug later. This is
+        // a full 32-bit write, so all four byte lanes are enabled.
+        .s_axil_wdata(32'h1), .s_axil_wstrb(4'hF),
+        .s_axil_wvalid(lc_clear), .s_axil_wready(),
         .s_axil_bresp(), .s_axil_bvalid(), .s_axil_bready(1'b1),
         .s_axil_araddr(s_araddr[8:0]), .s_axil_arvalid(lc_arvalid),
         .s_axil_arready(lc_arready),

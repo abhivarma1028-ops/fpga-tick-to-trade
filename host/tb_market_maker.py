@@ -17,7 +17,11 @@ def check(name, cond):
 
 def main():
     print("market maker quoting:")
-    cfg = MMConfig(half_spread_ticks=10, skew_ticks_per_share=0.05,
+    # skew is an INTEGER tick count -- that is what the RTL implements, and
+    # MMConfig.rtl_exact (default) truncates fractional values to 0. This test
+    # previously used 0.05, which under RTL-exact maths means NO SKEW AT ALL, so
+    # the four skew checks below were silently asserting nothing.
+    cfg = MMConfig(half_spread_ticks=10, skew_ticks_per_share=5,
                    quote_size=100, max_position=1000)
     mm = MarketMaker(cfg)
 
@@ -36,7 +40,7 @@ def main():
     check("bid-heavy shifts quotes up", q2.bid_price > q.bid_price)
 
     # LONG inventory -> skew quotes DOWN (keener to sell, shy to buy)
-    ql = mm.quote(bp, 100, ap, 100, inventory=200)   # skew = -200*0.05 = -10 ticks
+    ql = mm.quote(bp, 100, ap, 100, inventory=200)   # skew = -200*5 = -1000 ticks
     check("long inventory lowers bid", ql.bid_price < q.bid_price)
     check("long inventory lowers ask", ql.ask_price < q.ask_price)
 

@@ -98,6 +98,37 @@ module latency_counter #(
     // clear strobe from AXI-Lite write to 0x104
     logic do_clear;
 
+    // Stage 1 — capture the measurement at the decision edge.
+    //
+    // Done in two cycles rather than one. As a single cycle the path is
+    //   free_cnt -> subtract -> compare/mux -> 64:1 read -> increment -> 64-way write
+    // which synthesises to 13 logic levels with 6x CARRY8, and at 250 MHz it was
+    // the ONLY failing path in the whole design (-0.067 ns, 31 endpoints) while
+    // the parser, book, strategy and risk logic all met timing. Splitting it puts
+    // the subtract/bin in one cycle and the histogram read-modify-write in the
+    // next, roughly halving both.
+    //
+    // This is instrumentation, so recording one cycle later does not change what
+    // is recorded: `delta` is still evaluated from free_cnt - t0 at the decision
+    // edge, so last_latency_cycles reports exactly the same number as before.
+    logic                meas_valid_q;
+    logic [CNT_W-1:0]    delta_q;
+    logic [BUCKET_W-1:0] bucket_q;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            meas_valid_q <= 1'b0;
+            delta_q      <= '0;
+            bucket_q     <= '0;
+        end else begin
+            meas_valid_q <= decision_valid && measuring && !do_clear;
+            delta_q      <= delta;
+            bucket_q     <= bucket;
+        end
+    end
+
+    // Stage 2 — commit it. A clear arriving here still wins, discarding any
+    // measurement captured on the previous cycle, which is what a clear means.
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             last_latency_cycles <= '0;
@@ -105,9 +136,9 @@ module latency_counter #(
         end else if (do_clear) begin
             last_latency_cycles <= '0;
             for (idx = 0; idx < HIST_BUCKETS; idx++) hist[idx] <= '0;
-        end else if (decision_valid && measuring) begin
-            last_latency_cycles <= delta;
-            hist[bucket]        <= hist[bucket] + 1'b1;
+        end else if (meas_valid_q) begin
+            last_latency_cycles <= delta_q;
+            hist[bucket_q]      <= hist[bucket_q] + 1'b1;
         end
     end
 
