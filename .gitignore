@@ -126,3 +126,12 @@ reports/*.bak-*
 
 # compile_simlib / impl console logs (the .rpt evidence is kept)
 gatesim/*.stdout
+
+# Built documents. The .tex sources are tracked; the PDFs are build output and
+# were bloating the repo with regenerable binaries (~5 MB). Rebuild any of them
+# with: cd docs && pdflatex <name>.tex
+docs/*.pdf
+
+# Live monitor page -- rewritten on every run from reports/run_state.json, so it
+# is generated state rather than source.
+reports/live.html
