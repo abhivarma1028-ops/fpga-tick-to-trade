@@ -127,10 +127,10 @@ reports/*.bak-*
 # compile_simlib / impl console logs (the .rpt evidence is kept)
 gatesim/*.stdout
 
-# Built documents. The .tex sources are tracked; the PDFs are build output and
-# were bloating the repo with regenerable binaries (~5 MB). Rebuild any of them
-# with: cd docs && pdflatex <name>.tex
-docs/*.pdf
+# Documentation is kept out of the repository entirely -- the built PDFs
+# (regenerable binaries, ~5 MB, diffing as noise on every rebuild) and the .tex
+# sources alike. The docs live locally; the repo carries code.
+docs/
 
 # Live monitor page -- rewritten on every run from reports/run_state.json, so it
 # is generated state rather than source.
