@@ -49,10 +49,10 @@ Attach from the repo `docs/` folder. Keep to 2–3; reviewers skim.
 
 | File | What it proves | Priority |
 |---|---|---|
-| `docs/aws_f2_cloud_build.pdf` | The exact AWS F2 HDK build flow I ran (z1d + Dev AMI → DCP → AFI). Directly matches the case. | **Attach — must** |
-| `docs/hft_project_portfolio.pdf` | One-doc overview: the design is a real, coherent engineering project. | **Attach — must** |
-| `docs/executive_summary.pdf` | Short summary of design + measured results, if a 3rd is wanted. | Optional |
-| `docs/implementation_results.pdf` | Detailed timing/area/power reports (heavier; only if they ask for depth). | Only if requested |
+| `docs/12_aws_f2_cloud_build.pdf` | The exact AWS F2 HDK build flow I ran (z1d + Dev AMI → DCP → AFI). Directly matches the case. | **Attach — must** |
+| `docs/01_hft_project_portfolio.pdf` | One-doc overview: the design is a real, coherent engineering project. | **Attach — must** |
+| `docs/02_executive_summary.pdf` | Short summary of design + measured results, if a 3rd is wanted. | Optional |
+| `docs/08_implementation_results.pdf` | Detailed timing/area/power reports (heavier; only if they ask for depth). | Only if requested |
 
 ## SELF-VERIFIABLE EVIDENCE (reviewer can run against account 546517269032)
 ```

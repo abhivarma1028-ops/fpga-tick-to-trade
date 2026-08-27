@@ -15,6 +15,14 @@ A **built, validated AFI already exists** (`afi-0a02e7745a17daa6a`). That proves
 real, non-abusive intent — crypto miners don't go through full HDK synthesis +
 place & route. Lead with it.
 
+## Second card — F2 is now the ONLY FPGA option on AWS (verified 2026-07-17)
+The **F1 family has been fully retired** — `f1.2xlarge`/`.4xlarge`/`.16xlarge` are no
+longer offered in **any** AWS region (verified via `describe-instance-type-offerings`
+across us-east-1/2, us-west-1/2, eu-west-1, eu-central-1, ap-southeast-2 — all empty).
+So there is no cheaper or smaller FPGA fallback: a single `f2.6xlarge` is the minimum
+unit of the only remaining FPGA instance family AWS sells. This removes any "use
+something smaller/older instead" objection entirely.
+
 ## Why exactly 24 vCPUs (not more, not less) — say this explicitly
 24 is not an arbitrary number: it is the size of **one `f2.6xlarge`**, the **smallest**
 F2 instance AWS offers (24 vCPU / 1 FPGA). I cannot request less — the next size down
@@ -55,6 +63,9 @@ production trading operation.
 - All I need now is to launch **a single `f2.6xlarge`** to load this AFI and run short
   validation passes (load image, stream test data, read on-chip latency counters) —
   typically under an hour per session, then stop/terminate.
+- **F2 is now the only FPGA option:** the previous-generation F1 family has been retired
+  from every AWS region, so there is no smaller or cheaper FPGA instance I could use
+  instead — a single `f2.6xlarge` is the minimum unit of the only remaining FPGA family.
 
 **Specifics:**
 - Instance type: one `f2.6xlarge` (24 vCPUs, 1 FPGA)
@@ -88,8 +99,9 @@ market-data accelerator). I've **already completed the full AWS FPGA build** on 
 FPGA Developer AMI and have a validated, available **AFI: `afi-0a02e7745a17daa6a`**.
 I just need **one `f2.6xlarge`** to load it and run short validation passes (under an
 hour each, then terminate). The 24-vCPU limit I'm asking for is exactly one
-`f2.6xlarge` — the **smallest** F2 instance; I can't request less. Account is on a paid
-plan with a valid payment method.
+`f2.6xlarge` — the **smallest** F2 instance; I can't request less. Note the older F1
+family has been retired from all regions, so F2 is now the only FPGA option available.
+Account is on a paid plan with a valid payment method.
 
 Given there's already a built AFI ready to run, I'd appreciate a review to enable
 F-instance capacity. Happy to provide more detail.

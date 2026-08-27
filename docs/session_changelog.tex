@@ -1,0 +1,158 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.9cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+\definecolor{fpgablue}{RGB}{13,71,161}
+\definecolor{hostgreen}{RGB}{27,94,32}
+\definecolor{accent}{RGB}{183,28,28}
+\definecolor{rulegray}{RGB}{120,120,120}
+
+\usepackage[colorlinks=true]{hyperref}
+\hypersetup{linkcolor=fpgablue, urlcolor=blue, pdftitle={HFT Project — Session Change Log}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\titleformat{\section}{\large\bfseries\color{fpgablue}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{fpgablue}}{}{0em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\newcommand{\hr}{\textcolor{rulegray}{\rule{\linewidth}{1pt}}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+\begin{document}
+
+{\LARGE\bfseries\color{fpgablue} HFT Project — Change Log}\hfill
+{\small\color{rulegray} Live-trading stack \& hardware market maker \textbullet\ July 2026}\\[-1pt]
+{\large What was built this session: the full software trading system, real broker
+execution, four strategies, and a timing-closed \emph{hardware} market maker.}
+
+\hr
+
+\section{Overview}
+The prior work was a timing-closed FPGA tick-to-trade \emph{signal} pipeline (205\,ns)
+plus a software mirror. This session built the entire layer \emph{around} that: a
+multi-symbol live-trading stack with real broker execution, a disciplined pre-trade
+decision engine, four trading strategies, a live web monitor, and — on the hardware
+side — a new, separately timing-closed \textbf{market-maker accelerator}. None of the
+existing RTL signal core changed; everything is either a software overlay or a new,
+independently verified hardware block. All work is committed locally on branch
+\code{feat/live-trading-and-hw-market-maker} (79 files); the AWS HDK vendor clone and
+build artifacts are excluded.
+
+\section{Software trading stack (\code{host/})}
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
+  \item \textbf{Multi-symbol live feed} — trades a named universe (Magnificent~7) or
+  any basket concurrently, one strategy/book/position per symbol.
+  \item \textbf{Pre-trade gauntlet} (\code{hft\_logic.py}) — every signal must pass, in
+  order: fair value (microprice) $\to$ edge vs cost $\to$ volatility / liquidity /
+  staleness $\to$ inventory skew $\to$ portfolio exposure + kill switch. Each veto is
+  counted (a funnel).
+  \item \textbf{Portfolio \& risk} (\code{portfolio.py}) — cross-symbol positions,
+  realized/unrealized PnL, net/gross exposure, per-symbol drawdown, fees, and a
+  daily-loss/drawdown \textbf{kill switch}.
+  \item \textbf{Execution safety} — per-position stop-loss / take-profit, max-hold
+  auto-flatten, cooldown throttle, auto-flatten on stop and on kill-switch, and a
+  \textbf{Flatten / Pause / Stop} control from the monitor page.
+\end{itemize}
+
+\section{Real broker execution (Alpaca / IBKR)}
+Live/paper trading now runs on \emph{real fills}, not assumptions:
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
+  \item Orders are booked from the broker's actual \textbf{trade-update / execDetails}
+  events — real quantity, price, and fee — for both Alpaca and IBKR.
+  \item The portfolio is \textbf{reconciled to broker truth} at startup and periodically
+  (real positions + average entry), so equity/exposure are broker-accurate.
+  \item Real \textbf{slippage} (fill vs decision price) and real \textbf{network RTT}
+  (order submit$\to$ack) are measured, not modelled.
+\end{itemize}
+A live AAPL run confirmed the plumbing end-to-end (real fills, positions, PnL, slippage)
+and surfaced the honest finding below.
+
+\section{Strategies \& backtest}
+Four strategies, compared on the same streams (\code{backtest.py}, 1\,bps fee):
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+\textbf{Strategy} & \textbf{Mean net PnL} & \textbf{Behaviour} \\
+\midrule
+Taker (crosses spread)          & $-\$13{,}139$ & pays the spread $\to$ bleeds \\
+Market maker (heuristic)        & $+\$620$      & earns spread, inventory-skewed \\
+Avellaneda--Stoikov (optimal)   & $+\$266$      & reservation price + optimal spread \\
+Momentum taker                  & (loses live)  & buys up-moves $\to$ adverse selection \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Honest takeaways.} (1)~Crossing the spread loses; \emph{earning} it (market
+making) pays. (2)~The imbalance signal has \emph{no} short-horizon edge on real AAPL
+(measured information coefficient was negative) — so the taker's edge is latency, not
+alpha. (3)~The A--S model needed real care: an uncalibrated volatility term first blew
+up ($-\$1.7$M) until \code{gamma} was scaled to tick units and quotes were bounded; and
+a too-tight ``optimal'' spread eats adverse selection on a noisy feed (a wider floor
+turns it positive).
+
+\section{Live web monitor (\code{reports/live.html})}
+A self-contained control panel served by the feed itself:
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
+  \item \textbf{Speed hero} — SW compute latency vs the FPGA's fixed 205\,ns, a
+  cumulative ``time saved'' counter, a live latency histogram + percentiles.
+  \item \textbf{P\&L / positions} — equity + realized-only overlay, per-symbol PnL,
+  \textbf{shares bought / sold}, \textbf{open positions}, exposure vs cap, risk-vs-loss.
+  \item \textbf{Price \& spread chart}, pre-trade funnel, recent trades (with per-trade
+  compute time + slippage), alerts feed, live log.
+  \item \textbf{Controls} — start/stop/pause, switch strategy, tune config, add/remove
+  symbol, flatten — all from the page; dark terminal theme; keyboard shortcuts.
+\end{itemize}
+
+\section{Hardware market maker (new RTL)}
+The one piece that genuinely warranted new RTL + synthesis:
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
+  \item \code{strategy\_market\_maker.sv} — microprice fair value + inventory skew +
+  half-spread $\to$ two-sided quotes, with position-cap suppression.
+  \item \code{pipe\_divu.sv} — a 64-stage pipelined divider. A market maker \emph{must}
+  divide (it produces a price), and a single-cycle divide failed timing badly
+  (WNS $-39.3$\,ns, the 387-level division was the critical path). Pipelining it fixed it.
+  \item \code{market\_maker\_top.sv} — AXI-Lite CSR accelerator + latency counter.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Metric (Vivado OOC, xcu200 @ 200\,MHz)} & \textbf{single-cycle} & \textbf{pipelined (final)} \\
+\midrule
+Worst negative slack (WNS)  & $-39.3$\,ns (fail) & $\mathbf{+1.004}$\,\textbf{ns (met)} \\
+Failing endpoints           & 64                 & \textbf{0} \\
+CLB LUTs                    & 2{,}733            & 9{,}237 (0.78\%) \\
+DSPs                        & 8                  & 8 \\
+Compute latency             & ---                & 66 cycles (330\,ns) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Verified bit-exact against a golden model (500/500 and 40/40 cocotb checks). An
+AFI-buildable F2 Custom Logic wrapper (\code{f2/cl\_market\_maker/}) mirrors the proven
+\code{cl\_tick\_to\_trade} — ready to bake into an AFI once the AWS F-instance quota clears.
+
+\section{Verification \& status}
+\begin{itemize}[leftmargin=1.4em, itemsep=1pt]
+  \item One-command regression (\code{run\_all\_tests.sh}): \textbf{6/6 green} throughout.
+  \item Software signal core still equivalent to the RTL (0 mismatches, 16{,}361 decisions).
+  \item Both new RTL blocks verified vs golden and timing-closed.
+  \item AWS: only F2 remains (F1 end-of-life); the on-silicon run is blocked solely by the
+  F-instance vCPU quota, not by the design. Everything else is done and local.
+\end{itemize}
+
+\vfill
+{\small\color{rulegray} Generated as a session change log. Numbers are from the actual
+Vivado reports (\code{results/mm\_synth/}) and backtest runs; PnL figures are synthetic-stream
+means and paper-trading results, not investment claims.}
+
+\end{document}
