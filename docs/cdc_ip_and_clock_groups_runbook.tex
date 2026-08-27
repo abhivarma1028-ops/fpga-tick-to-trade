@@ -1,0 +1,1055 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.9cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyvrb}
+\usepackage{longtable}
+
+\definecolor{fpgablue}{RGB}{13,71,161}
+\definecolor{hostgreen}{RGB}{27,94,32}
+\definecolor{accent}{RGB}{183,28,28}
+\definecolor{rulegray}{RGB}{120,120,120}
+\definecolor{codebg}{RGB}{245,245,245}
+
+\usepackage[colorlinks=true]{hyperref}
+\hypersetup{linkcolor=fpgablue, urlcolor=blue,
+  pdftitle={HFT Project --- CDC IP Creation \& Clock Groups Runbook}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\titleformat{\section}{\large\bfseries\color{fpgablue}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{fpgablue}}{}{0em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+\newcommand{\hr}{\par\textcolor{rulegray}{\rule{\linewidth}{1pt}}\par}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% CHECKPOINT callout
+\newcommand{\checkpoint}[2]{%
+  \par\smallskip\noindent
+  \fcolorbox{rulegray}{codebg}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
+    \textcolor{hostgreen}{\textbf{CHECKPOINT #1}} --- #2
+    \end{minipage}}\par\smallskip}
+
+% WARNING callout
+\newcommand{\warn}[1]{%
+  \par\smallskip\noindent
+  \fcolorbox{accent}{codebg}{%
+    \begin{minipage}{\dimexpr\linewidth-2\fboxsep-2\fboxrule}
+    #1
+    \end{minipage}}\par\smallskip}
+
+\DefineVerbatimEnvironment{cmd}{Verbatim}
+  {fontsize=\small, frame=single, rulecolor=\color{rulegray},
+   framesep=4pt, xleftmargin=0pt, samepage=false}
+
+\begin{document}
+
+{\LARGE\bfseries\color{fpgablue} CDC IP Creation \& Clock Groups}\hfill
+{\small\color{rulegray} Sequential runbook \textbullet\ July 2026}\\[-1pt]
+{\large From sim-verified \code{rtl/cdc} sources to five packaged IPs, integrated
+across three clock domains, with a clean \code{report\_cdc}.}
+
+\hr
+
+You drive Vivado --- every step below is a command you run or a box you tick. Each
+part ends with a \textbf{checkpoint}; do not proceed past a failed one. Companion
+docs: \code{docs/ip\_packaging\_runbook.md} (original GUI walkthrough) and
+\code{rtl/cdc/README\_cdc.md} (XPM production-swap table).
+
+\begin{center}
+\small
+\begin{tabular}{@{}clc@{}}
+\toprule
+\textbf{Part} & \textbf{What you do} & \textbf{Vivado} \\
+\midrule
+0 & Prerequisites, part choice, and a mandatory XDC fix & no \\
+1 & Package the five IPs by hand in the GUI & yes \\
+2 & Register the IP repository & yes \\
+3 & Verify each IP out-of-context (\code{report\_cdc} per block) & yes \\
+4 & Define the three clock domains and their groups & yes \\
+5 & Integrate and verify the full design & yes \\
+6 & Trap reference & --- \\
+A & Module port/parameter reference for IP Integrator wiring & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hr
+
+\section{Prerequisites and mandatory fixes}
+
+Do all of Part~0 before opening Vivado. Section~0.3 in particular is a real defect:
+left alone it silently produces an unconstrained design that still looks green.
+
+\subsection{0.1 Confirm the library still passes simulation}
+
+\begin{cmd}
+cd sim && make cdc-regression
+\end{cmd}
+
+\checkpoint{0.1}{ends with \code{==== CDC regression PASSED ====}, 8 tests across all
+five blocks. If red, fix before packaging --- do not bake a broken block into an IP.}
+
+\warn{\textbf{What this proves --- and does not.} \code{cdc-regression} runs under
+Verilator, a \emph{zero-delay cycle simulator}. It proves protocol and data
+integrity across unrelated clocks. It \textbf{cannot} model metastability or a
+setup/hold violation. Green here does \emph{not} mean the crossing is silicon-safe
+--- that is what Part~3 is for. Keep these two claims separate when describing this
+work.}
+
+\subsection{0.2 Pick the right part --- \code{xcvu47p} is not installed}
+
+You will select a part in the \textbf{New Project} wizard five times (once per
+block), so decide now. Use:
+
+\begin{cmd}
+xcu200-fsgd2104-2-e
+\end{cmd}
+
+\warn{Do \textbf{not} pick the F2 part \code{xcvu47p-fsvh2892-2L-e-es1}. Your local
+Vivado 2025.2 install has \textbf{78 parts}, families \code{virtexuplus},
+\code{zynq}, \code{azynq} only --- \code{xcvu47p} is \textbf{not among them}. It
+exists only on the AWS FPGA Developer AMI build host, so it will not appear in the
+wizard's part list no matter how you filter.}
+
+\code{xcu200-fsgd2104-2-e} is the part every existing synth result in
+\code{results/} was produced against, so your numbers stay comparable. In the
+wizard: \textbf{Parts} tab, type \code{xcu200} in the search box, select the single
+match.
+
+To confirm from the Tcl Console at any time:
+
+\begin{cmd}
+llength [get_parts xcu200-fsgd2104-2-e]   ;# expect 1
+llength [get_parts xcvu47p*]              ;# expect 0 locally
+\end{cmd}
+
+When you later package on the AWS host, choose the F2 part there instead. The CDC
+logic is device-agnostic; only the packaging target changes.
+
+\emph{Aside:} the scripted alternative \code{ip/package\_cdc\_ips.tcl} hard-codes
+\code{xcvu47p} on line~11 and therefore aborts at \code{create\_project} on this
+machine. You are doing this manually, so it does not affect you --- but if you ever
+fall back to the script, fix that line first.
+
+\subsection{0.3 Fix four XDC files whose constraints match zero cells}
+
+This one is silent, which makes it the dangerous one. Several constraints select
+cells with a filter like:
+
+\begin{cmd}
+[get_cells -hierarchical -filter {NAME =~ *wq_reg[0]*}]
+\end{cmd}
+
+In Tcl's \code{string match}, \textbf{\code{[0]} is a character class}, not a literal
+bracket. It matches the single character \code{0}, so the pattern expects
+\code{wq\_reg} followed immediately by the character \code{0}. The actual synthesized
+cell is named \verb|wq_reg[0][3]| --- the next character is \verb|[|.
+\textbf{The pattern matches nothing.} Verified with plain Tcl:
+
+\begin{cmd}
+*wq_reg[0]*     vs  wq_reg[0][3]        -> NO MATCH
+*wq_reg\[0\]*   vs  wq_reg[0][3]        -> MATCH
+*sync_reg[0]*   vs  u_fwd/sync_reg[0]   -> NO MATCH
+*sync_reg\[0\]* vs  u_fwd/sync_reg[0]   -> MATCH
+*sync_reg\[0\]* vs  u_fwd/sync_reg[1]   -> NO MATCH   (correctly selective)
+\end{cmd}
+
+\warn{An empty object list means \code{set\_max\_delay} / \code{set\_false\_path}
+applies to \textbf{nothing}. Synthesis still succeeds, simulation stays green,
+\code{report\_cdc} may still look reasonable --- and your crossing is unconstrained.
+Escape the brackets.}
+
+\textbf{The edits.} In \code{rtl/cdc/xdc/sync\_2ff\_ooc.xdc}:
+
+\begin{cmd}
+set_false_path -to [get_cells -hierarchical -filter {NAME =~ *sync_reg\[0\]*}]
+\end{cmd}
+
+In \code{rtl/cdc/xdc/pulse\_sync\_ooc.xdc} --- both \code{set\_max\_delay} targets:
+
+\begin{cmd}
+-to [get_cells -hierarchical -filter {NAME =~ *u_fwd*sync_reg\[0\]*}]
+-to [get_cells -hierarchical -filter {NAME =~ *u_ack*sync_reg\[0\]*}]
+\end{cmd}
+
+In \code{rtl/cdc/xdc/async\_fifo\_ooc.xdc} and
+\code{rtl/cdc/xdc/axis\_async\_fifo\_ooc.xdc}:
+
+\begin{cmd}
+-to [get_cells -hierarchical -filter {NAME =~ *wq_reg\[0\]*}]
+-to [get_cells -hierarchical -filter {NAME =~ *rq_reg\[0\]*}]
+\end{cmd}
+
+\textbf{Not affected} --- these use no index and already match correctly: every
+\code{set\_property ASYNC\_REG} line, and \code{handshake\_mcp\_ooc.xdc}'s
+\code{*data\_hold\_reg*} $\rightarrow$ \code{*dst\_data\_reg*} \code{set\_max\_delay}.
+
+\subsection{0.4 Decide your three domain frequencies}
+
+The periods baked into the OOC XDCs are \emph{representative placeholders} for
+out-of-context synthesis. They are overridden by the real clocks at integration
+(Part~4), but pick your intended numbers now --- they drive each IP's
+\code{FREQ\_HZ}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Domain} & \textbf{Role} & \textbf{Current OOC placeholder} \\
+\midrule
+Line / RX & market-data ingest & 156.25\,MHz (6.400\,ns) \\
+Core & parser $\to$ book $\to$ strategy $\to$ risk & 250\,MHz (4.000\,ns) \\
+Host / CSR & AXI-Lite, DMA, telemetry & 125\,MHz (8.000\,ns) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\warn{\textbf{Reality check on Core.} Your closed result today is \textbf{200\,MHz}
+(\code{tick\_to\_trade\_top} with the strategy selector, WNS $+1.815$\,ns). The XDCs
+say 250\,MHz. Either retime for 250 or set the core domain to 200\,MHz and update
+the periods --- but do not leave a constraint claiming a frequency you have not
+closed.}
+
+\checkpoint{0}{regression green; \code{PART} fixed; four XDCs escaped; three
+frequencies chosen and written down.}
+
+\section{Package the five IPs}
+
+Each block is self-contained (\code{pulse\_sync} and \code{handshake\_mcp} include
+their own copy of \code{sync\_2ff.sv}; \code{axis\_async\_fifo} includes
+\code{async\_fifo.sv}), so \textbf{there is no ordering dependency} --- package them
+in any order.
+
+\textbf{You do this entirely by hand in the Vivado GUI} --- one project per block,
+adding the source files yourself. Repeat steps 1.1--1.7 five times, substituting the
+block name and its files from this table each pass:
+
+\begin{center}
+\small
+\begin{tabular}{@{}clp{5.4cm}p{4.1cm}@{}}
+\toprule
+\textbf{Pass} & \textbf{Block (= top)} & \textbf{Design sources to add} &
+\textbf{Constraints to add} \\
+\midrule
+1 & \code{sync\_2ff} & \code{rtl/cdc/sync\_2ff.sv} &
+\code{sync\_2ff\_ooc.xdc} \\
+2 & \code{pulse\_sync} & \code{rtl/cdc/pulse\_sync.sv} \newline
+\code{rtl/cdc/sync\_2ff.sv} & \code{pulse\_sync\_ooc.xdc} \\
+3 & \code{async\_fifo} & \code{rtl/cdc/async\_fifo.sv} &
+\code{async\_fifo\_ooc.xdc} \\
+4 & \code{axis\_async\_fifo} & \code{rtl/cdc/axis\_async\_fifo.sv} \newline
+\code{rtl/cdc/async\_fifo.sv} & \code{axis\_async\_fifo\_ooc.xdc} \\
+5 & \code{handshake\_mcp} & \code{rtl/cdc/handshake\_mcp.sv} \newline
+\code{rtl/cdc/sync\_2ff.sv} & \code{handshake\_mcp\_ooc.xdc} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All constraint files live in \code{rtl/cdc/xdc/}. Blocks that instantiate a
+sub-module need \emph{both} files --- miss the second one and synthesis fails with
+\code{ERROR: [Synth 8-439] module '<name>' not found}.
+
+\warn{\textbf{Add the sub-module as a \emph{file}, not as a packaged IP.} When
+\code{pulse\_sync} instantiates \code{sync\_2ff}, Vivado needs the RTL text of
+\code{sync\_2ff} in \emph{pulse\_sync's own source list}. It does not resolve an RTL
+module instantiation against your IP catalog, so the \code{sync\_2ff} IP you
+packaged in pass~1 is irrelevant here --- add \code{rtl/cdc/sync\_2ff.sv} to the
+project like any other source.
+
+That means \code{sync\_2ff.sv} ends up inside three IPs and \code{async\_fifo.sv}
+inside two. Deliberate: every IP is \textbf{self-contained}, so dropping any one of
+them into a design pulls in everything it needs, and the five passes have no
+ordering dependency at all.}
+
+\subsection{1.1 Create the project}
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=1pt]
+\item \textbf{File $\to$ Project $\to$ New\ldots} $\to$ \emph{Next}.
+\item \textbf{Project name}: \code{pkg\_<block>} (e.g.\ \code{pkg\_sync\_2ff}).
+  \textbf{Location}: a \code{projects/} folder that is \textbf{not} inside the IP
+  location you will choose in 1.5 --- e.g.\ \code{<ip-root>/projects/}. These are
+  scratch projects, not deliverables. Tick \emph{Create project subdirectory}.
+  $\to$ \emph{Next}.
+  \\[2pt]
+  \emph{Nesting the project inside the IP folder is what produces
+  \code{19-3898} (``file is not found in the project sources'') and \code{19-3656}
+  (``repository path may become invalid'').} Vivado wants the two
+  \textbf{adjacent}, e.g.:
+
+\begin{cmd}
+IPs/projects/pkg_pulse_sync/   <- the Vivado project
+IPs/cdc_repo/pulse_sync/       <- the packaged IP (component.xml)
+\end{cmd}
+\item \textbf{Project type}: \emph{RTL Project}. Tick \emph{Do not specify sources
+  at this time} --- you will add them deliberately in 1.2. $\to$ \emph{Next}.
+\item \textbf{Default Part}: \emph{Parts} tab, search \code{xcu200}, select
+  \code{xcu200-fsgd2104-2-e} (see Part~0.2). $\to$ \emph{Next} $\to$ \emph{Finish}.
+\end{enumerate}
+
+\subsection{1.2 Add the design sources by hand}
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=1pt]
+\item Flow Navigator $\to$ \textbf{PROJECT MANAGER $\to$ Add Sources} (or
+  \textbf{Alt+A}).
+\item Select \emph{Add or create design sources} $\to$ \emph{Next}.
+\item \textbf{Add Files\ldots} $\to$ browse to \code{rtl/cdc/} $\to$ select the
+  \code{.sv} file(s) for this pass from the table above (Ctrl-click for two).
+\item Tick \textbf{Copy sources into project}. \textbf{Do not skip this.} If left
+  unticked the project references the files in place
+  (\code{\$PPRDIR/../../Projects/HFT/rtl/cdc/...}) while the packager makes its own
+  copies under \code{<ip-root>/src/}. The two paths do not match, so on merge the
+  packager reports \code{19-3898} and \textbf{drops the file from the packaged IP}.
+  A project with no \code{.srcs/} directory is the tell that this was missed.
+\item \emph{Finish}.
+\item In the \textbf{Sources} pane, confirm each file's type is
+  \textbf{SystemVerilog}. If one came in as plain Verilog, right-click it $\to$
+  \textbf{Set File Type\ldots} $\to$ \emph{SystemVerilog}. These files use
+  \code{logic}, \code{always\_ff} and packed arrays --- as Verilog-2001 they will
+  throw syntax errors.
+\end{enumerate}
+
+\subsection{1.3 Set the top module}
+
+In \textbf{Sources $\to$ Design Sources}, right-click the block's module $\to$
+\textbf{Set as Top}. The top module's name renders in \textbf{bold}.
+
+\emph{If \textbf{Set as Top} does not appear, the module is already top} --- Vivado
+hides the option for the module that already holds it, and with only one module in
+the project it auto-designates that one. On pass~1 (\code{sync\_2ff}) that is always
+the case, so there is nothing to do. Treat this step as a \emph{verification}: it
+only bites on passes 2, 4 and 5, where you must confirm the \emph{wrapper} is top
+and not the sub-module it instantiates. (Two other causes of a missing option:
+right-clicking in the \textbf{Libraries} or \textbf{Compile Order} tab instead of
+\textbf{Hierarchy}, or a file that failed to parse and landed under \emph{Non-module
+Files}.)
+
+\subsection{1.4 Add the OOC constraints}
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=1pt]
+\item \textbf{Add Sources} again $\to$ \emph{Add or create constraints} $\to$
+  \emph{Next}.
+\item \textbf{Add Files\ldots} $\to$ \code{rtl/cdc/xdc/<block>\_ooc.xdc} $\to$ tick
+  \textbf{Copy constraints files into project} $\to$ \emph{Finish}.
+\item Select the XDC under \textbf{Sources $\to$ Constraints}. In the
+  \textbf{Source File Properties} pane find \textbf{USED\_IN} and tick all three:
+  \textbf{synthesis}, \textbf{implementation}, \code{out\_of\_context}.
+\end{enumerate}
+
+\warn{Step 3 is not optional. Without \code{out\_of\_context} in USED\_IN, the CDC
+exceptions in that XDC are ignored whenever the IP is synthesized standalone --- and
+standalone is exactly how a packaged OOC IP gets built. The IP will look fine and be
+unconstrained.}
+
+\subsection{1.5 Launch the packager}
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=1pt]
+\item \textbf{Tools $\to$ Create and Package New IP\ldots} $\to$ \emph{Next}.
+\item Choose \textbf{Package your current project} $\to$ \emph{Next}.
+\item \textbf{IP location}: \code{<ip-root>/cdc\_repo/<block>} --- a
+  \textbf{per-block subfolder} (create it if the browser does not). Keep all five
+  under the same \code{cdc\_repo} parent: that single directory becomes your IP
+  repository in Part~2. $\to$ \emph{Next}.
+\item \emph{Finish}. The \textbf{Package IP} window opens with a left-hand step list.
+\end{enumerate}
+
+\warn{\textbf{Give every block its own folder.} If you point the IP location at a
+bare directory (say \code{\textasciitilde/IPs}) rather than
+\code{\textasciitilde/IPs/cdc\_repo/<block>}, Vivado writes \code{component.xml} to
+the \emph{top} of it --- and the next block you package overwrites it. You finish
+with one IP instead of five, and Part~2 has nothing to find. Check after each pass
+that \code{component.xml} sits in a per-block subfolder, not at the repository root.}
+
+\subsection{1.6 Work through the Package IP tabs}
+
+Click each entry in the left panel in order. A tab showing a warning triangle needs
+attention; one showing a tick is done.
+
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+\item \textbf{Identification} --- Vendor \code{hft}, Library \code{cdc}, Name
+  \code{<block>}, Version \code{1.0}, Display name \code{<block>}, Description
+  ``HFT CDC primitive: <block>'', Taxonomy \code{/HFT/CDC}.
+\item \textbf{File Groups} --- \emph{the manifest, and the tab that matters most.}
+  It declares which files actually ship inside the IP and in what role: the
+  \textbf{Synthesis} group is the RTL used when the IP is synthesized \emph{plus
+  your XDC}; \textbf{Simulation} is the RTL used in simulation. Confirm all three:
+  \begin{enumerate}[leftmargin=1.4em, itemsep=0pt, topsep=2pt, label=(\alph*)]
+  \item the block's \code{.sv} appears under \emph{Synthesis} \textbf{and}
+    \emph{Simulation};
+  \item the \code{\_ooc.xdc} appears under \emph{Synthesis} with file type XDC;
+  \item on passes 2, 4 and 5, \textbf{both} \code{.sv} files are listed --- wrapper
+    plus sub-module.
+  \end{enumerate}
+  If the tab offers \textbf{Merge changes from File Groups Wizard}, click it: the
+  file list has gone stale, usually because you added the XDC in step~1.4 after
+  opening the packager. That is nearly always why a missing XDC is missing.
+  \\[2pt]
+  Finally, check the \textbf{Is Include} column: it must be \textbf{unticked} on the
+  XDC. \code{isIncludeFile} marks a file as a \emph{header} pulled in via
+  \code{`include} --- meaningless for constraints, and it raises
+  \code{19-4296}.
+\item \textbf{Customization Parameters} --- \textbf{Merge changes from Customization
+  Parameters Wizard}, then verify the block's parameters are listed and editable:
+  \code{sync\_2ff} $\to$ \code{STAGES}, \code{INIT\_VAL};
+  \code{pulse\_sync} $\to$ \code{STAGES};
+  \code{async\_fifo} $\to$ \code{WIDTH}, \code{DEPTH}, \code{STAGES},
+  \code{AF\_LEVEL}, \code{AE\_LEVEL};
+  \code{axis\_async\_fifo} $\to$ \code{TDATA\_W}, \code{DEPTH}, \code{STAGES};
+  \code{handshake\_mcp} $\to$ \code{WIDTH}, \code{STAGES}.
+\item \textbf{Ports and Interfaces} --- the important tab. For each clock port,
+  select it and set \textbf{FREQ\_HZ} (your Part~0.4 numbers) and
+  \textbf{ASSOCIATED\_RESET}:
+  \code{clk}$\to$\code{rst\_n}; \code{wr\_clk}$\to$\code{wr\_rst\_n};
+  \code{rd\_clk}$\to$\code{rd\_rst\_n}; \code{s\_clk}$\to$\code{s\_rst\_n};
+  \code{m\_clk}$\to$\code{m\_rst\_n}; \code{src\_clk}$\to$\code{src\_rst\_n};
+  \code{dst\_clk}$\to$\code{dst\_rst\_n}.
+  \\[2pt]
+  On \code{axis\_async\_fifo} only: confirm \code{s\_axis\_*} and \code{m\_axis\_*}
+  have been inferred as \textbf{AXI4-Stream} slave/master interfaces. If they have
+  not, right-click in the interface list $\to$ \textbf{Auto Infer Interface} $\to$
+  \emph{AXI4-Stream}, or add the bus interface manually and map the ports by name.
+  Then set \textbf{ASSOCIATED\_BUSIF}: \code{s\_clk}$\to$\code{S\_AXIS},
+  \code{m\_clk}$\to$\code{M\_AXIS}. Without this the block design will not let you
+  drag-connect the streams.
+\item \textbf{Review and Package} --- read the summary, then click
+  \textbf{Package IP}.
+\end{itemize}
+
+\subsection{1.6a Ports and Interfaces in detail}
+
+This tab declares what your ports \emph{mean} --- which are clocks, which are
+resets, which belong to a bus --- so IP Integrator can auto-connect them. Without it
+IPI sees anonymous wires.
+
+\textbf{How to set a value:} right-click the \emph{interface} (not the raw port)
+$\to$ \textbf{Edit Interface\ldots} $\to$ the \textbf{Parameters} tab. If the
+parameter is not listed --- a freshly inferred clock has \emph{no} parameters at all
+--- click \textbf{+} to add it by name, then set its value. POLARITY is a dropdown
+(it carries a choice list) rather than free text. Plain data ports --- \code{d},
+\code{q}, the AXIS payload signals --- need nothing.
+
+Equivalently, from the Tcl Console (faster, and easy to verify afterwards):
+
+\begin{cmd}
+set core  [ipx::current_core]
+set clkif [ipx::get_bus_interfaces clk -of_objects $core]
+
+ipx::add_bus_parameter FREQ_HZ $clkif
+set_property value 250000000 [ipx::get_bus_parameters FREQ_HZ -of_objects $clkif]
+
+ipx::add_bus_parameter ASSOCIATED_RESET $clkif
+set_property value rst_n [ipx::get_bus_parameters ASSOCIATED_RESET -of_objects $clkif]
+
+ipx::update_checksums $core
+ipx::save_core $core
+\end{cmd}
+
+A parameter that already exists needs no \code{add\_bus\_parameter} --- just
+\code{set\_property value}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrll@{}}
+\toprule
+\textbf{Block} & \textbf{Clock} & \textbf{FREQ\_HZ} &
+\textbf{ASSOCIATED\_RESET} & \textbf{ASSOCIATED\_BUSIF} \\
+\midrule
+\code{sync\_2ff}        & \code{clk}     & 250\,000\,000 & \code{rst\_n}     & --- \\
+\addlinespace
+\code{pulse\_sync}      & \code{src\_clk} & 125\,000\,000 & \code{src\_rst\_n} & --- \\
+                        & \code{dst\_clk} & 250\,000\,000 & \code{dst\_rst\_n} & --- \\
+\addlinespace
+\code{async\_fifo}      & \code{wr\_clk} & 156\,250\,000 & \code{wr\_rst\_n} & --- \\
+                        & \code{rd\_clk} & 250\,000\,000 & \code{rd\_rst\_n} & --- \\
+\addlinespace
+\code{axis\_async\_fifo} & \code{s\_clk} & 156\,250\,000 & \code{s\_rst\_n} &
+\textbf{\code{S\_AXIS}} \\
+                        & \code{m\_clk} & 250\,000\,000 & \code{m\_rst\_n} &
+\textbf{\code{M\_AXIS}} \\
+\addlinespace
+\code{handshake\_mcp}   & \code{src\_clk} & 125\,000\,000 & \code{src\_rst\_n} & --- \\
+                        & \code{dst\_clk} & 250\,000\,000 & \code{dst\_rst\_n} & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The frequencies are the periods from each block's OOC XDC, so the IP metadata and
+the constraints agree. If you settled on a 200\,MHz core in Part~0.4, use
+\code{200000000} wherever the table says 250\,MHz.
+
+\warn{\textbf{Set POLARITY = ACTIVE\_LOW on every reset interface.} All five blocks
+use \code{always\_ff @(\ldots\ or negedge rst\_n)} --- asynchronous, active low. If
+POLARITY is left ACTIVE\_HIGH, IP Integrator wires a reset that is asserted when it
+should be released: the block either sits in reset forever or never resets at all.
+In practice Vivado \emph{does} infer this correctly from the \code{\_n} suffix ---
+on \code{sync\_2ff} the reset came through as busType \code{reset} with
+\code{POLARITY = ACTIVE\_LOW} already set, so there was nothing to change. Verify
+rather than assume --- the check is cheap:
+\code{grep -A2 POLARITY <ip>/component.xml} should show \code{ACTIVE\_LOW}.}
+
+\textbf{Pass 4 is the odd one.} \code{axis\_async\_fifo} is the only block with a
+bus. Before setting ASSOCIATED\_BUSIF, confirm \code{s\_axis\_*} and
+\code{m\_axis\_*} were inferred as \textbf{AXI4-Stream} slave/master interfaces; if
+not, right-click in the interface list $\to$ \textbf{Auto Infer Interface} $\to$
+\emph{AXI4-Stream}, or add the bus interface and map the ports by name. Without it
+you cannot drag-connect the streams in the block design. On the other four blocks
+ASSOCIATED\_BUSIF stays empty --- which is exactly why \code{19-5661} never clears
+there.
+
+\warn{\textbf{The GUI will not let you add ASSOCIATED\_BUSIF.} Its \emph{Add
+Parameter} dialog offers only the parameters it considers standard for a clock
+interface, and \code{ASSOCIATED\_BUSIF} is usually absent --- reported as
+``ASSOCIATED\_BUSIF does not exist''. The parameter is valid; only the dialog is
+limited. Add it from the Tcl Console instead:
+
+\code{ipx::add\_bus\_parameter ASSOCIATED\_BUSIF \$clkif} then
+\code{set\_property value s\_axis [ipx::get\_bus\_parameters ASSOCIATED\_BUSIF
+-of\_objects \$clkif]}
+
+Use the interface names Vivado actually created --- it derives them from the port
+prefix, so they come out lowercase \code{s\_axis} / \code{m\_axis}, not the
+\code{S\_AXIS} convention. Either case is accepted downstream.}
+
+\subsection{1.6b Warnings you will see --- and which ones matter}
+
+The \textbf{Messages} pane fills with IP Packager warnings on every pass. Most are
+noise. Note that Vivado groups them by \emph{wizard}, and the badge on a left-panel
+tab counts that wizard's messages --- which is not always the tab where you fix the
+problem. Triage:
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{4.3cm}p{5.0cm}p{5.2cm}@{}}
+\toprule
+\textbf{Message} & \textbf{Means} & \textbf{Do} \\
+\midrule
+\code{19-11770} Clock interface \code{clk} has no FREQ\_HZ parameter &
+the clock carries no declared frequency &
+\textbf{FIX} --- Ports and Interfaces $\to$ select the clock $\to$ set
+\textbf{FREQ\_HZ} (and \textbf{ASSOCIATED\_RESET}) \\
+\addlinespace
+\code{19-11888} IP description is not meaningful &
+Description still defaults to the module name. \emph{Reported under the
+Compatibility Wizard, so the badge lands on the Compatibility tab} &
+\textbf{FIX} (cosmetic) --- but on the \textbf{Identification} tab, not
+Compatibility: write a real description \\
+\addlinespace
+\code{19-5661} Bus Interface \code{clk} does not have any bus interfaces
+associated with it &
+\code{ASSOCIATED\_BUSIF} is empty &
+\textbf{IGNORE} on \code{sync\_2ff}, \code{pulse\_sync}, \code{async\_fifo},
+\code{handshake\_mcp} --- they have no AXI interface. \textbf{Only}
+\code{axis\_async\_fifo} must set it \\
+\addlinespace
+\code{19-4296} Unsupported include file should not have \code{isIncludeFile} set &
+the \emph{Is Include} box is ticked on the XDC; that flag marks a
+\code{`include} header, not constraints &
+\textbf{FIX} --- File Groups $\to$ untick \emph{Is Include} on the XDC, re-package \\
+\addlinespace
+\code{19-5101} Packaging a component with a SystemVerilog top file is not fully
+supported &
+the packager's SV support at top level is partial &
+\textbf{IGNORE} here --- these blocks expose only \code{logic} scalars and packed
+vectors, which map cleanly. Only if ports or parameters come out wrong in IPI, add a
+thin Verilog-2001 wrapper for packaging \\
+\addlinespace
+\code{19-3656} repository path may become invalid if the project moves &
+the packaging project is nested \emph{inside} the IP folder &
+\textbf{IGNORE} if it already works; for later passes put the project
+\emph{adjacent} to the IP (Part 1.1) \\
+\addlinespace
+\code{19-2187} The Product Guide file is missing &
+a documentation-completeness check --- commercial IPs ship a datasheet PDF the way
+Xilinx IPs ship their PG documents &
+\textbf{IGNORE} --- nothing to attach on a hand-rolled block; appears on all five
+passes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\warn{\textbf{Do not expect a clean sheet.} \code{19-5661} and \code{19-2187} never
+clear --- they persist on all five passes and that is correct behaviour, not a
+defect. They are \emph{warnings}, not errors: \textbf{Package IP} stays clickable
+throughout. Only \code{19-11770} (FREQ\_HZ) and \code{19-11888} (description) call
+for action. Note too that these are \emph{metadata} problems --- rearranging folders
+or re-creating the project will not touch them; you clear them by filling fields in
+the wizard.}
+
+\warn{\textbf{Check the Identification defaults.} Out of the box the component is
+named something like \code{Twinwinglabs:user:sync\_2ff:1.0} --- your Vivado install's
+default vendor --- or \code{user.org:user:sync\_2ff:1.0} on a stock install. Set
+\textbf{Vendor} \code{hft}, \textbf{Library} \code{cdc} and \textbf{Taxonomy}
+\code{/HFT/CDC} on every pass, or the five blocks will not group together under
+\emph{HFT/CDC} in the catalog in Part~2. To check what you actually shipped, grep
+the packaged component: \code{grep spirit:vendor <ip>/component.xml}, and confirm
+\code{FREQ\_HZ} appears at all --- zero hits means 1.6's clock settings never took.}
+
+\textbf{On the Compatibility tab:} leave \emph{Package for Vitis} unchecked --- that
+is for Vitis acceleration kernels with an \code{ap\_ctrl\_hs} control protocol, not
+what these are. Do \textbf{not} tick \emph{Ignore Freq\_Hz}; you want FREQ\_HZ.
+Confirm the \textbf{Family} list includes \code{virtexuplus}: \code{xcvu47p} is a
+Virtex UltraScale+ device, so even though that part is not installed locally the
+family is covered and these IPs stay usable when you later build on the AWS host.
+
+\subsection{1.7 Close and repeat}
+
+Vivado offers to close the project after packaging --- accept. Return to 1.1 for the
+next block. Because each block carries its own copy of any sub-module, \textbf{there
+is no ordering dependency}: package them in whatever order you like.
+
+\emph{Note on OOC synthesis:} the Out-Of-Context choice is \textbf{not} made in the
+packaging wizard. It is chosen later, when you instantiate the IP and run
+\textbf{Generate Output Products} --- set \textbf{Synthesis Options} to
+\emph{Out of context per IP} so each IP synthesizes and caches independently.
+
+\checkpoint{1}{five packaged IPs exist, one folder each, every one containing a
+\code{component.xml} --- \emph{and each one passes the checker}:
+
+\code{python3 ip/check\_packaged\_ip.py <ip-root>/*}
+
+It reads the IP-XACT only (it never launches Vivado) and exits non-zero if any
+\textbf{FAIL} remains. Trust it over the wizard's badges: it verifies what actually
+got written to disk.}
+
+\textbf{Do not skip the checker.} The GUI reports success while leaving real
+problems behind --- observed on the first live pass, \emph{after} the packager said
+it was done: \code{isIncludeFile} had migrated from the XDC onto \emph{both} copies
+of \code{sync\_2ff.sv} (so the module would be treated as an include header rather
+than compiled), and the clock interface had picked up a stray \code{POLARITY} while
+still missing \code{FREQ\_HZ} and \code{ASSOCIATED\_RESET}. None of that is visible
+without reading \code{component.xml}.
+
+\warn{\textbf{When you untick \emph{Is Include}, untick it everywhere.} The flag is
+per-file and per-file-group: the same \code{.sv} appears in both the Synthesis and
+Simulation groups and each carries its own checkbox. Clearing it on one row --- or
+clearing it on the XDC and accidentally setting it on the sources --- leaves you
+exactly where you started. Re-run the checker after every re-package.}
+
+\section{Register the IP repository}
+
+In the project where you will assemble the design:
+
+\begin{cmd}
+set_property ip_repo_paths [file normalize ip/cdc_repo] [current_project]
+update_ip_catalog
+\end{cmd}
+
+\textbf{You need a project open first.} An IP repository is a project setting, so
+there is no such menu on the Welcome screen. Since Part~4 needs an integration
+project anyway, create it now: \textbf{File $\to$ Project $\to$ New\ldots}, name
+\code{cdc\_integration}, RTL Project, \emph{Do not specify sources at this time},
+part \code{xcu200-fsgd2104-2-e}. The repository registration then carries straight
+through to the block design.
+
+\textbf{GUI route (use this one):} Flow Navigator $\to$ \textbf{PROJECT MANAGER}
+$\to$ \textbf{Settings} $\to$ \textbf{IP $\to$ Repository} $\to$ the \textbf{+}
+button $\to$ browse to your IP root $\to$ \emph{Select}. Vivado reports how many
+IPs it found --- \textbf{it should say 5}. Click \emph{OK}, then \textbf{Refresh IP
+Catalog} if prompted. (Equivalent: \textbf{Window $\to$ IP Catalog}, right-click
+$\to$ \textbf{Add Repository\ldots})
+
+\warn{\textbf{Do not use \emph{Manage IP}.} It looks like the right feature and is
+not: Manage IP is a flow for generating IP customisations out-of-context, and it
+demands a directory containing a \code{manage\_ip\_project}. Pointing it at your IP
+root gives ``The directory you selected is not a valid Manage IP location''. Adding
+a \emph{repository} is the Settings route above.}
+
+If it finds fewer than five, one of the packaging passes did not complete; check
+which \code{ip/cdc\_repo/<block>/} folder is missing its \code{component.xml} and
+redo that pass.
+
+\checkpoint{2}{all five blocks appear in \textbf{Window $\to$ IP Catalog} under
+\textbf{HFT / CDC}.}
+
+\section{Verify each IP out-of-context}
+
+\textbf{Do this before integrating.} Per-block OOC checks prove the primitives are
+sound; integration checks (Part~5) prove your \emph{wiring} is sound. Debugging both
+at once is much harder. This is the verification layer that has never been run on
+this library.
+
+\subsection{3.1 Run the checks --- GUI route}
+
+\warn{\textbf{Synthesis only --- do not run implementation.} \code{report\_cdc},
+\code{report\_clock\_interaction} and \code{check\_timing} all work on the
+\emph{synthesized} netlist. CDC is a structural property of how signals cross
+domains, fully determined after synthesis; place \& route adds nothing to the
+analysis. Packaging itself (Part~1) needs neither --- the packager reads the RTL and
+metadata directly.
+
+\textbf{And ignore per-block area and power.} \code{sync\_2ff} is two flip-flops;
+its utilisation is a couple of registers and its power is rounding error. A
+synthesis-only power report is vectorless and low-confidence anyway (real numbers
+need post-route plus a SAIF). The metrics that mean something come from the
+\emph{integrated} design in Part~5, measured against the existing baseline ---
+WNS $+1.815$\,ns / 7570 LUTs at 200\,MHz for the selector top, and WNS $+0.066$\,ns
+from the real \code{xcvu47p} P\&R. The question worth answering is what the CDC
+restructuring costs against those, not what a synchroniser weighs alone.}
+
+\textbf{Reuse the \code{pkg\_<block>} projects you built in Part~1.} They already
+contain the right sources, the OOC XDC and the correct part, so there is nothing to
+set up. For each block:
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=1pt]
+\item \textbf{File $\to$ Project $\to$ Open Recent} $\to$ \code{pkg\_<block>}.
+\item Flow Navigator $\to$ \textbf{SYNTHESIS $\to$ Run Synthesis}. Accept the
+  defaults; these blocks synthesize in seconds.
+\item When it finishes choose \textbf{Open Synthesized Design}.
+\item \textbf{Reports $\to$ Timing $\to$ Report CDC\ldots} $\to$ tick
+  \emph{Details} $\to$ \emph{OK}. Results open in a docked pane; use \emph{Export}
+  to save to \code{results/cdc/<block>\_cdc.rpt}.
+\item \textbf{Reports $\to$ Timing $\to$ Report Clock Interaction\ldots} $\to$
+  \emph{OK}.
+\item \textbf{Reports $\to$ Timing $\to$ Check Timing\ldots} $\to$ \emph{OK}.
+\end{enumerate}
+
+\emph{Equivalent Tcl}, if you prefer typing into the \textbf{Tcl Console} at the
+bottom of the same GUI window (this is where the 3.2 checks must go anyway):
+
+\begin{cmd}
+report_cdc               -details -file results/cdc/async_fifo_cdc.rpt
+report_clock_interaction -file results/cdc/async_fifo_clkint.rpt
+check_timing   -verbose  -file results/cdc/async_fifo_checktiming.rpt
+\end{cmd}
+
+For reference, the sources each block needs (top module = the first file) --- the
+same set you added by hand in Part~1.2:
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Block} & \textbf{Sources} \\
+\midrule
+\code{sync\_2ff}        & \code{sync\_2ff.sv} \\
+\code{pulse\_sync}      & \code{pulse\_sync.sv} \quad \code{sync\_2ff.sv} \\
+\code{async\_fifo}      & \code{async\_fifo.sv} \\
+\code{axis\_async\_fifo} & \code{axis\_async\_fifo.sv} \quad \code{async\_fifo.sv} \\
+\code{handshake\_mcp}   & \code{handshake\_mcp.sv} \quad \code{sync\_2ff.sv} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{3.2 Confirm the constraints actually bound to cells}
+
+This is the Part~0.3 bug class. \textbf{After \code{synth\_design}, before trusting
+any report:}
+
+\begin{cmd}
+# how many flops actually carry ASYNC_REG?
+llength [get_cells -hier -filter {ASYNC_REG}]
+
+# do the escaped patterns now select real cells? (expect non-zero)
+llength [get_cells -hierarchical -filter {NAME =~ *wq_reg\[0\]*}]
+llength [get_cells -hierarchical -filter {NAME =~ *rq_reg\[0\]*}]
+
+# and confirm the exceptions landed
+llength [get_timing_exceptions]
+\end{cmd}
+
+Expected non-zero ASYNC\_REG counts: \code{sync\_2ff} = STAGES (2);
+\code{pulse\_sync} and \code{handshake\_mcp} = 2 chains $\times$ STAGES (4);
+\code{async\_fifo} / \code{axis\_async\_fifo} = $2 \times$ STAGES $\times$ (AW$+1$)
+bits.
+
+\warn{\textbf{If any count is 0, stop.} The constraint is not applied and every
+report below is meaningless.}
+
+\subsection{3.3 Acceptance criteria}
+
+\textbf{\code{report\_cdc}} --- every crossing recognized and \textbf{Safe}; zero
+Unsafe, zero Unknown.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{3.1cm}p{11.6cm}@{}}
+\toprule
+\textbf{Block} & \textbf{Expect} \\
+\midrule
+\code{sync\_2ff} & \code{d} is an async input into a 2-FF ASYNC\_REG chain,
+false-pathed. Single clock, so no clock-pair crossing. \\
+\code{pulse\_sync} & Both toggle chains (\code{u\_fwd}, \code{u\_ack}) safe, 1-bit each. \\
+\code{async\_fifo} & Gray-coded pointer crossings classified safe (multi-bit but
+Gray, one bit changes per step). \\
+\code{axis\_async\_fifo} & Same as \code{async\_fifo} --- a thin
+\code{\{tlast,tdata\}} wrapper. \\
+\code{handshake\_mcp} & 1-bit req/ack toggles safe; the wide \code{data\_hold}
+$\to$ \code{dst\_data} bus recognized as an MCP crossing covered by
+\code{set\_max\_delay -datapath\_only}. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Read \code{handshake\_mcp} and the FIFOs carefully rather than just checking for
+green. If the wide bus is reported as an \textbf{unsafe multi-bit crossing}, the
+\code{set\_max\_delay} is not matching cell names (Part~0.3 again). The FIFO memory
+may also be flagged as a multi-bit crossing --- that one is expected and justified
+(reads are gated by the synchronized pointer), and it is exactly the case you should
+be able to \emph{explain} rather than waive.
+
+\textbf{\code{report\_clock\_interaction}} --- every async clock pair must read
+\textbf{``Asynchronous Groups''}. If a pair reads \textbf{``Partial False Path''},
+that is the classic silent bug: some paths across the boundary are constrained and
+some are not. Treat it as a failure, not a warning.
+
+\textbf{\code{check\_timing}} --- no unconstrained endpoints, no missing
+\code{create\_clock}, no \code{no\_clock} warnings.
+
+\checkpoint{3}{for all five blocks --- non-zero ASYNC\_REG counts, zero
+Unsafe/Unknown in \code{report\_cdc}, no ``Partial False Path'', clean
+\code{check\_timing}. Save the reports to \code{results/cdc/}: they are the evidence
+that the library is sound.}
+
+\section{Clock domains and clock groups}
+
+\subsection{4.1 The three domains and where each crossing sits}
+
+\begin{cmd}
+   LINE domain              CORE domain                   HOST domain
+  (RX / ingest)      (parse -> book -> strategy -> risk) (AXI-Lite / DMA)
+
+  ITCH bytes --[axis_async_fifo]--> itch_parser ... risk_check
+                  s_clk=line                |
+                  m_clk=core                +--[axis_async_fifo]--> egress/DMA
+                                                 s_clk=core, m_clk=host
+
+  config (strat_sel, thresholds) <--[handshake_mcp]-- host CSR writes
+                                                      src=host, dst=core
+  halt / enable bit              <--[sync_2ff]------- host
+  GO / latency-clear strobe      <--[pulse_sync]----- host
+  latency snapshots              --[handshake_mcp]--> host telemetry
+                                    src=core, dst=host
+\end{cmd}
+
+\warn{\textbf{Rule:} no signal crosses a boundary except through one of these five
+blocks. A signal that straddles the boundary in raw logic is what turns
+\code{report\_cdc} \emph{Unknown}.}
+
+\subsection{4.2 Write the top-level clock constraints}
+
+At integration the IP-level OOC \code{create\_clock} commands are replaced by the
+real top-level clocks (shell clock recipe, an MMCM, or board pins). Define all
+three, then declare all three mutually asynchronous:
+
+\begin{cmd}
+# --- top-level clock definitions (adjust to your actual sources) ------------
+create_clock -name clk_line -period 6.400 [get_ports clk_line]   ;# 156.25 MHz
+create_clock -name clk_core -period 4.000 [get_ports clk_core]   ;# 250 MHz (see 0.4)
+create_clock -name clk_host -period 8.000 [get_ports clk_host]   ;# 125 MHz
+
+# --- the three domains are mutually unrelated ------------------------------
+set_clock_groups -asynchronous \
+  -group [get_clocks clk_line] \
+  -group [get_clocks clk_core] \
+  -group [get_clocks clk_host]
+\end{cmd}
+
+One \code{set\_clock\_groups} with three \code{-group} options declares all three
+pairs async --- do not write three separate two-group commands, which is easy to get
+subtly wrong. If the clocks come from an MMCM rather than separate oscillators, use
+the generated clock names (\code{get\_clocks -of\_objects [get\_pins ...]}) instead
+of port names.
+
+\warn{\textbf{If you later move to an Arty A7-100T:} that board has a
+\emph{single} 100\,MHz oscillator, so MMCM-derived clocks are phase-\emph{related}
+and Vivado sees them as synchronous. You can still constrain them async and exercise
+the logic, but it is only a partial async-CDC demonstration --- two truly independent
+oscillators are what makes this real. Also, Artix-7 device support is not installed
+in your Vivado today (\code{get\_parts xc7a100t*} returns 0); you would add it via
+the installer.}
+
+\subsection{4.3 Assemble in IP Integrator}
+
+\textbf{Create the ports first}, before adding any IP --- right-click canvas $\to$
+\textbf{Create Port\ldots} (Ctrl+K). Setting Type=Clock with a frequency is what
+makes IPI propagate it into each IP's FREQ\_HZ.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Port} & \textbf{Direction} & \textbf{Type} & \textbf{Setting} \\
+\midrule
+\code{clk\_line}  & Input & Clock & 156.25\,MHz \\
+\code{clk\_core}  & Input & Clock & 250\,MHz \\
+\code{clk\_host}  & Input & Clock & 125\,MHz \\
+\code{rst\_line\_n} & Input & Reset & ACTIVE\_LOW \\
+\code{rst\_core\_n} & Input & Reset & ACTIVE\_LOW \\
+\code{rst\_host\_n} & Input & Reset & ACTIVE\_LOW \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Then \textbf{Add IP} (right-click canvas): \code{axis\_async\_fifo} $\times 2$
+(ingress + egress), \code{handshake\_mcp}, \code{sync\_2ff}, \code{pulse\_sync}.
+Double-click each to set parameters --- ingress \code{TDATA\_W}=8, egress
+\code{TDATA\_W}=9, \code{handshake\_mcp} \code{WIDTH}=32, \code{STAGES}=2 throughout.
+
+\textbf{To draw a connection:} hover a pin until the cursor becomes a pencil, then
+drag to the target; valid targets highlight green. Work \emph{from each port
+outward} rather than block by block --- far fewer canvas jumps. Eighteen
+connections in total:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{10.2cm}@{}}
+\toprule
+\textbf{From port} & \textbf{To pins} \\
+\midrule
+\code{clk\_line}   & \code{axis0/s\_clk} \\
+\code{clk\_core}   & \code{axis0/m\_clk}, \code{axis1/s\_clk},
+                     \code{handshake/dst\_clk}, \code{sync\_2ff/clk},
+                     \code{pulse\_sync/dst\_clk} \\
+\code{clk\_host}   & \code{axis1/m\_clk}, \code{handshake/src\_clk},
+                     \code{pulse\_sync/src\_clk} \\
+\addlinespace
+\code{rst\_line\_n} & \code{axis0/s\_rst\_n} \\
+\code{rst\_core\_n} & \code{axis0/m\_rst\_n}, \code{axis1/s\_rst\_n},
+                      \code{handshake/dst\_rst\_n}, \code{sync\_2ff/rst\_n},
+                      \code{pulse\_sync/dst\_rst\_n} \\
+\code{rst\_host\_n} & \code{axis1/m\_rst\_n}, \code{handshake/src\_rst\_n},
+                      \code{pulse\_sync/src\_rst\_n} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\warn{\textbf{Each reset follows its clock exactly.} \code{clk\_core} and
+\code{rst\_core\_n} go to the same five pins; likewise for the other two domains. A
+reset landing on a pin whose clock came from a different domain is the mistake to
+look for --- it is silent in the block design and only shows up as odd behaviour
+later. Never fan one reset across all three domains.}
+
+\textbf{Finally, export the data ports:} select each remaining pin $\to$
+\textbf{Ctrl+T} (Make External). For AXIS, select the \emph{interface} pin (the
+bundled connector) and one Ctrl+T exports the whole bus: \code{S\_AXIS} and
+\code{M\_AXIS} on both FIFOs. Then individually: \code{handshake\_mcp}'s
+\code{src\_valid}/\code{src\_data}/\code{src\_ready}/\code{dst\_valid}/\code{dst\_data};
+\code{sync\_2ff}'s \code{d}/\code{q}; \code{pulse\_sync}'s
+\code{src\_pulse}/\code{src\_busy}/\code{dst\_pulse}. Nothing may be left dangling
+--- Validate fails on unconnected pins and names the offender.
+
+\checkpoint{4}{block design validates (\textbf{Tools $\to$ Validate Design}) with no
+critical warnings; every cross-domain connection passes through a CDC IP.}
+
+\section{Verify the integrated design}
+
+After synthesizing the assembled design:
+
+\begin{cmd}
+report_cdc               -details -file results/cdc/top_cdc.rpt
+report_clock_interaction -file results/cdc/top_clkint.rpt
+report_timing_summary    -file results/cdc/top_timing.rpt
+check_timing   -verbose  -file results/cdc/top_checktiming.rpt
+\end{cmd}
+
+Acceptance gates:
+
+\begin{enumerate}[leftmargin=1.4em, itemsep=2pt]
+\item \textbf{\code{report\_cdc}}: zero Unsafe, zero Unknown. An \emph{Unknown}
+  almost always means a signal bypassed the CDC IPs --- fix it by routing through
+  the right primitive, \textbf{not} by adding a waiver.
+\item \textbf{\code{report\_clock\_interaction}}: all three pairs show
+  ``Asynchronous Groups''; no ``Partial False Path''.
+\item \textbf{\code{report\_timing\_summary}}: each clock meets its own period
+  independently; WNS positive per domain.
+\item \textbf{\code{check\_timing}}: no unconstrained endpoints.
+\end{enumerate}
+
+\checkpoint{5}{all four gates pass. At that point you have a genuine three-domain
+design with \emph{static CDC sign-off} --- a materially stronger claim than ``the
+simulation passed''.}
+
+\section{Trap reference}
+
+\begin{center}
+\small
+\begin{tabular}{@{}cp{5.1cm}p{4.3cm}p{4.0cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Trap} & \textbf{Symptom} & \textbf{Fix} \\
+\midrule
+1 & Reaching for the F2 part \code{xcvu47p} & it is not in the New Project part
+list at all & Part 0.2 --- use \code{xcu200-fsgd2104-2-e} \\
+2 & \code{[0]} in a \code{NAME =\textasciitilde} filter is a character class &
+constraint silently applies to nothing & Part 0.3 --- escape as
+\verb|\[0\]| \\
+3 & XDC missing \code{USED\_IN out\_of\_context} & exceptions ignored during OOC
+synth & set the file property in Part 1.3 \\
+4 & \code{set\_property ASYNC\_REG} matched zero cells & synchronizers unprotected,
+sim still green & count with \code{get\_cells -hier -filter \{ASYNC\_REG\}} (3.2) \\
+5 & ``Partial False Path'' in clock interaction & some boundary paths unconstrained
+& one \code{set\_clock\_groups} covering all pairs (4.2) \\
+6 & Constraint claims 250\,MHz, design closes 200 & timing signed off against
+fiction & Part 0.4 --- set the real number \\
+7 & Treating Verilator green as CDC sign-off & metastability never modelled &
+Part 3 is the real check \\
+8 & One reset fanned across all domains & reset removal violates in two domains &
+per-domain synchronized reset (4.3) \\
+9 & Only the wrapper \code{.sv} added on passes 2, 4, 5 & elaboration fails,
+sub-module not found & Part 1.2 --- add \emph{both} files \\
+10 & \code{.sv} added as Verilog-2001, not SystemVerilog & syntax errors on
+\code{logic} / \code{always\_ff} & Part 1.2 --- Set File Type $\to$ SystemVerilog \\
+11 & \emph{Copy sources into project} left unticked & \code{19-3898}: file ``not
+found in the project sources'', XDC silently dropped from the IP & Part 1.2 --- tick
+it; no \code{.srcs/} dir is the tell \\
+12 & IP location is a bare folder, not a per-block subfolder & each pass overwrites
+the last \code{component.xml}; one IP instead of five & Part 1.5 --- use
+\code{cdc\_repo/<block>} \\
+13 & Spaces in the project path (e.g.\ \code{IP for HFT}) & Vivado copes, but Tcl
+paths, simulator scripts and shell tooling break later & Part 1.1 --- use a
+space-free path \\
+14 & One project for all five blocks & \emph{Package your current project} packages
+one IP from one top module & Part 1.1 --- one project per block \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Appendix A --- Module reference for IPI wiring}
+\addcontentsline{toc}{section}{Appendix A}
+
+\subsection*{\code{sync\_2ff} --- single-bit level crossing}
+Params \code{STAGES=2}, \code{INIT\_VAL=0}. \\
+Ports \code{clk}, \code{rst\_n}, \code{d} (async in), \code{q} (synchronized out).
+
+\subsection*{\code{pulse\_sync} --- one-cycle strobe crossing (toggle + closed-loop ack)}
+Params \code{STAGES=2}. \\
+Src \code{src\_clk}, \code{src\_rst\_n}, \code{src\_pulse}, \code{src\_busy}. \\
+Dst \code{dst\_clk}, \code{dst\_rst\_n}, \code{dst\_pulse}. \\
+\emph{\code{src\_busy} is high while a pulse is in flight --- gate new pulses on it
+or they are dropped.}
+
+\subsection*{\code{async\_fifo} --- multi-bit stream, Gray-pointer dual-clock, FWFT}
+Params \code{WIDTH=8}, \code{DEPTH=16} (power of two), \code{STAGES=2},
+\code{AF\_LEVEL=DEPTH-2}, \code{AE\_LEVEL=1}. \\
+Write \code{wr\_clk}, \code{wr\_rst\_n}, \code{wr\_en}, \code{wr\_data},
+\code{full}, \code{almost\_full}. \\
+Read \code{rd\_clk}, \code{rd\_rst\_n}, \code{rd\_en}, \code{rd\_data},
+\code{empty}, \code{almost\_empty}.
+
+\subsection*{\code{axis\_async\_fifo} --- AXI-Stream boundary crossing}
+Params \code{TDATA\_W=8}, \code{DEPTH=16}, \code{STAGES=2}. \\
+Slave \code{s\_clk}, \code{s\_rst\_n}, \code{s\_axis\_tvalid}, \code{s\_axis\_tready},
+\code{s\_axis\_tdata}, \code{s\_axis\_tlast}. \\
+Master \code{m\_clk}, \code{m\_rst\_n}, \code{m\_axis\_tvalid}, \code{m\_axis\_tready},
+\code{m\_axis\_tdata}, \code{m\_axis\_tlast}. \\
+\emph{Carries \code{\{tlast, tdata\}} through one \code{async\_fifo} of width
+\code{TDATA\_W+1}.}
+
+\subsection*{\code{handshake\_mcp} --- atomic multi-bit config (req/ack, data held stable)}
+Params \code{WIDTH=32}, \code{STAGES=2}. \\
+Src \code{src\_clk}, \code{src\_rst\_n}, \code{src\_valid}, \code{src\_data},
+\code{src\_ready}. \\
+Dst \code{dst\_clk}, \code{dst\_rst\_n}, \code{dst\_valid} (1-cycle pulse),
+\code{dst\_data} (held stable). \\
+\emph{Load only when \code{src\_ready} is high. Only the toggles cross; the data bus
+is an MCP relaxed with \code{set\_max\_delay -datapath\_only}, never a synchronized
+bus.}
+
+\end{document}

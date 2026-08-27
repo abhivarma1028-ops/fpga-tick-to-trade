@@ -841,7 +841,7 @@ tb\_strategy\_imbalance.py & strategy\_imbalance.sv & 21/21 & spread guard, cool
 \rowcolor{fixgreen!12}
 tb\_latency\_counter.py    & latency\_counter.sv    & 5/5   & histogram, saturation, AXI-Lite read, clear \\
 \rowcolor{fixgreen!12}
-tb\_tick\_to\_trade.py     & tick\_to\_trade\_top.sv & 5/5  & end-to-end 195\,ns, back-pressure no-drop \\
+tb\_tick\_to\_trade.py     & tick\_to\_trade\_top.sv & 5/5  & end-to-end 205\,ns, back-pressure no-drop \\
 \midrule
 \multicolumn{2}{r}{\bfseries TESTS=81\ \ PASS=81\ \ FAIL=0} & \textbf{81/81} & \\
 \bottomrule
@@ -849,8 +849,8 @@ tb\_tick\_to\_trade.py     & tick\_to\_trade\_top.sv & 5/5  & end-to-end 195\,ns
 \end{center}
 
 \noindent\textbf{Headline number:} the integration test measures a
-hardware-counted tick-to-trade latency of \textbf{39 cycles = 195\,ns} at
-200\,MHz for an Add Order --- 36 parser cycles $+$ 1 book $+$ 2 strategy gate.
+hardware-counted tick-to-trade latency of \textbf{41 cycles = 205\,ns} at
+200\,MHz for an Add Order --- 36 parser cycles $+$ 1 book $+$ 4 strategy pipeline.
 
 \subsection{Issues Log}
 
@@ -951,7 +951,7 @@ threshold).
 to the host over a 32-bit AXI-Lite slave: histogram buckets at
 \texttt{0x000--0x0FC}, last measured latency at \texttt{0x100}, and a clear strobe
 at \texttt{0x104}. The deterministic pipeline produces a single-spike histogram at
-39 cycles.
+41 cycles.
 
 \section{What's Next}
 
@@ -959,7 +959,7 @@ Part~2 covered the RTL and its verification. The pipeline is functionally
 complete and fully tested in simulation. Remaining work, in priority order:
 
 \textbf{Done since the first M2 cut:} \texttt{order\_book\_m2} is wired into
-\texttt{tick\_to\_trade\_top} (195\,ns preserved); the parser decodes 8 ITCH
+\texttt{tick\_to\_trade\_top} (205\,ns preserved); the parser decodes 8 ITCH
 types (A, F, C, D, E, U, X, P); the book is multi-level (top 4) with
 \texttt{msg\_ready} back-pressure and selective rescan; the strategy is
 depth-weighted with a spread guard, cooldown and imbalance-scaled lot sizing;
@@ -969,7 +969,7 @@ and \texttt{latency\_counter} exposes its histogram over AXI-Lite.
 
 \begin{enumerate}
   \item \textbf{Vivado synthesis / timing closure} on the VU9P part --- converts
-    the 195\,ns from ``simulation cycles $\times$ clock period'' into a
+    the 205\,ns from ``simulation cycles $\times$ clock period'' into a
     timing-closed silicon result (run on a larger-RAM machine; see Part~3).
   \item \textbf{PCIe DMA read path} --- so the host reads the 72-bit decision bus
     from hardware rather than a simulation queue.

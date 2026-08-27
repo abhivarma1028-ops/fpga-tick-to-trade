@@ -18,6 +18,9 @@ module tick_to_trade_top (
     output logic        risk_reject,   // an order was blocked by a risk check
     output logic [2:0]  risk_reason,   // why (see risk_check.sv)
 
+    // Strategy selection: 0 = imbalance taker, 1 = OFI taker (see strategy_select.sv)
+    input  logic [1:0]  strat_sel,
+
     // Decision stream out (to DMA → PS → IBKR bridge)
     output logic        m_axis_tvalid,
     // verilator lint_off UNUSEDSIGNAL
@@ -120,18 +123,22 @@ module tick_to_trade_top (
     );
 
     // -----------------------------------------------------------------------
-    // Strategy (depth-weighted over NLEVELS)
+    // Strategy — runtime-selectable (imbalance | OFI), both depth/best fed from
+    // the same book. strat_sel picks which decision reaches risk/output.
     // -----------------------------------------------------------------------
     logic        dec_valid;
     logic        action;
     logic [31:0] order_price, order_size;
 
-    strategy_imbalance #(.NLEVELS(NLEVELS)) u_strategy (
+    strategy_select #(.NLEVELS(NLEVELS)) u_strategy (
         .clk            (clk),
         .rst_n          (rst_n),
+        .strat_sel      (strat_sel),
         .book_valid     (book_valid),
         .best_bid_price (bbid_p),
         .best_ask_price (bask_p),
+        .best_bid_size  (bbid_s),
+        .best_ask_size  (bask_s),
         .bid_level_size (bid_level_size),
         .ask_level_size (ask_level_size),
         .decision_valid (dec_valid),

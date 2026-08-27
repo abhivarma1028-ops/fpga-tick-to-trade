@@ -1,0 +1,759 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version      : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date              : Fri Jul 31 16:51:21 2026
+| Host              : abhishek-VMware-Virtual-Platform running 64-bit Ubuntu 24.04.2 LTS
+| Command           : report_cdc -details -file /home/abhishek/Projects/HFT/vivado/mc_top/mc_top.runs/impl_1/post_route_cdc.rpt
+| Design            : tick_to_trade_mc_top
+| Device            : xcu200-fsgd2104
+| Speed File        : -2  PRODUCTION 1.28 03-30-2022
+| Design State      : Routed
+| Temperature Grade : E
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+ID      Severity  Count  Description
+------  --------  -----  ----------------------------------------------
+CDC-1   Critical    271  1-bit unknown CDC circuitry
+CDC-3   Info         20  1-bit synchronized with ASYNC_REG property
+CDC-6   Warning      14  Multi-bit synchronized with ASYNC_REG property
+CDC-13  Critical    222  1-bit CDC path on a non-FD primitive
+CDC-15  Warning     151  Clock enable controlled CDC structure detected
+CDC-26  Warning       8  LUTRAM read/write potential collision
+
+Source Clock: clk_host
+Destination Clock: clk_core
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                                 Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  --------------------------------------------  ----------------------------------------
+  1  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_ar/u_fifo/wgray_reg[1:0]/C             u_axil_ar/u_fifo/wq_reg[0][1:0]/D
+  2  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_ar/u_fifo/wbin_reg[2]/C                u_axil_ar/u_fifo/wq_reg[0][2]/D
+  3  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_aw/u_fifo/wgray_reg[1:0]/C             u_axil_aw/u_fifo/wq_reg[0][1:0]/D
+  4  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_aw/u_fifo/wbin_reg[2]/C                u_axil_aw/u_fifo/wq_reg[0][2]/D
+  5  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_b/u_fifo/rgray_reg[1:0]/C              u_axil_b/u_fifo/rq_reg[0][1:0]/D
+  6  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_b/u_fifo/rbin_reg[2]/C                 u_axil_b/u_fifo/rq_reg[0][2]/D
+  7  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_r/u_fifo/rgray_reg[1:0]/C              u_axil_r/u_fifo/rq_reg[0][1:0]/D
+  8  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_r/u_fifo/rbin_reg[2]/C                 u_axil_r/u_fifo/rq_reg[0][2]/D
+  9  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_w/u_fifo/wgray_reg[1:0]/C              u_axil_w/u_fifo/wq_reg[0][1:0]/D
+ 10  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_w/u_fifo/wbin_reg[2]/C                 u_axil_w/u_fifo/wq_reg[0][2]/D
+ 11  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_cfg/data_hold_reg[0]/C                      u_cfg/dst_data_reg[0]/D
+ 12  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_cfg/data_hold_reg[1]/C                      u_cfg/dst_data_reg[1]/D
+ 13  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_cfg/req_tog_reg/C                           u_cfg/u_req/sync_reg[0]/D
+ 14  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA/CLK     u_core/u_lat/ar_addr_lat_reg[0]/D
+ 15  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA_D1/CLK  u_core/u_lat/ar_addr_lat_reg[1]/D
+ 16  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/ar_addr_lat_reg[2]/D
+ 17  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/ar_addr_lat_reg[2]_rep/D
+ 18  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/ar_addr_lat_reg[2]_rep__0/D
+ 19  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/ar_addr_lat_reg[2]_rep__1/D
+ 20  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/ar_addr_lat_reg[2]_rep__2/D
+ 21  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/ar_addr_lat_reg[3]/D
+ 22  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/ar_addr_lat_reg[3]_rep/D
+ 23  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/ar_addr_lat_reg[3]_rep__0/D
+ 24  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/ar_addr_lat_reg[3]_rep__1/D
+ 25  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/ar_addr_lat_reg[3]_rep__2/D
+ 26  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC/CLK     u_core/u_lat/ar_addr_lat_reg[4]/D
+ 27  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC/CLK     u_core/u_lat/ar_addr_lat_reg[4]_rep/D
+ 28  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC/CLK     u_core/u_lat/ar_addr_lat_reg[4]_rep__0/D
+ 29  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC_D1/CLK  u_core/u_lat/ar_addr_lat_reg[5]/D
+ 30  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD/CLK     u_core/u_lat/ar_addr_lat_reg[6]/D
+ 31  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD_D1/CLK  u_core/u_lat/ar_addr_lat_reg[7]/D
+ 32  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAME/CLK     u_core/u_lat/ar_addr_lat_reg[8]/D
+ 33  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA/CLK     u_core/u_lat/aw_addr_lat_reg[0]/D
+ 34  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA_D1/CLK  u_core/u_lat/aw_addr_lat_reg[1]/D
+ 35  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB/CLK     u_core/u_lat/aw_addr_lat_reg[2]/D
+ 36  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB_D1/CLK  u_core/u_lat/aw_addr_lat_reg[3]/D
+ 37  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC/CLK     u_core/u_lat/aw_addr_lat_reg[4]/D
+ 38  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC_D1/CLK  u_core/u_lat/aw_addr_lat_reg[5]/D
+ 39  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD/CLK     u_core/u_lat/aw_addr_lat_reg[6]/D
+ 40  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD_D1/CLK  u_core/u_lat/aw_addr_lat_reg[7]/D
+ 41  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAME/CLK     u_core/u_lat/aw_addr_lat_reg[8]/D
+ 42  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_axil_w/u_fifo/mem_reg_0_3_0_13/DP/CLK       u_core/u_lat/do_clear_reg/D
+ 43  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_egress/u_fifo/rgray_reg[5:0]/C              u_egress/u_fifo/rq_reg[0][5:0]/D
+ 44  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_egress/u_fifo/rbin_reg[6]/C                 u_egress/u_fifo/rq_reg[0][6]/D
+ 45  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_risk_evt/ack_tog_reg/C                      u_risk_evt/u_ack/sync_reg[0]/D
+
+Source Clock: clk_line
+Destination Clock: clk_core
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                                  Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  ---------------------------------------------  ----------------------------------------
+  1  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[0]/D
+  2  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[1]/D
+  3  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[2]/D
+  4  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[3]/D
+  5  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[4]/D
+  6  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/byte_cnt_mon_reg[5]/D
+  7  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[0]/D
+  8  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[1]/D
+  9  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[2]/D
+ 10  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[3]/D
+ 11  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[4]/D
+ 12  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/byte_cnt_reg[5]/D
+ 13  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/m_valid_reg/D
+ 14  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/msg_type_r_reg[0]/D
+ 15  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/msg_type_r_reg[1]/D
+ 16  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/msg_type_r_reg[2]/D
+ 17  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/msg_type_r_reg[3]/D
+ 18  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/msg_type_r_reg[4]/D
+ 19  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/msg_type_r_reg[5]/D
+ 20  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/msg_type_r_reg[6]/D
+ 21  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/msg_type_r_reg[7]/D
+ 22  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[0]/CE
+ 23  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[1]/CE
+ 24  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[2]/CE
+ 25  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[3]/CE
+ 26  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[4]/CE
+ 27  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[5]/CE
+ 28  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[6]/CE
+ 29  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/msg_type_reg[7]/CE
+ 30  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[0]/CE
+ 31  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/new_order_ref_reg[0]/D
+ 32  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[1]/CE
+ 33  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/new_order_ref_reg[1]/D
+ 34  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[2]/CE
+ 35  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/new_order_ref_reg[2]/D
+ 36  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[3]/CE
+ 37  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/new_order_ref_reg[3]/D
+ 38  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[4]/CE
+ 39  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/new_order_ref_reg[4]/D
+ 40  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[5]/CE
+ 41  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/new_order_ref_reg[5]/D
+ 42  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[6]/CE
+ 43  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/new_order_ref_reg[6]/D
+ 44  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[7]/CE
+ 45  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/new_order_ref_reg[7]/D
+ 46  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[8]/CE
+ 47  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[9]/CE
+ 48  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[10]/CE
+ 49  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[11]/CE
+ 50  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[12]/CE
+ 51  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[13]/CE
+ 52  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[14]/CE
+ 53  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[15]/CE
+ 54  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[16]/CE
+ 55  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[17]/CE
+ 56  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[18]/CE
+ 57  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[19]/CE
+ 58  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[20]/CE
+ 59  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[21]/CE
+ 60  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[22]/CE
+ 61  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[23]/CE
+ 62  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[24]/CE
+ 63  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[25]/CE
+ 64  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[26]/CE
+ 65  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[27]/CE
+ 66  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[28]/CE
+ 67  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[29]/CE
+ 68  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[30]/CE
+ 69  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[31]/CE
+ 70  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[32]/CE
+ 71  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[33]/CE
+ 72  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[34]/CE
+ 73  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[35]/CE
+ 74  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[36]/CE
+ 75  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[37]/CE
+ 76  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[38]/CE
+ 77  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[39]/CE
+ 78  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[40]/CE
+ 79  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[41]/CE
+ 80  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[42]/CE
+ 81  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[43]/CE
+ 82  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[44]/CE
+ 83  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[45]/CE
+ 84  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[46]/CE
+ 85  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[47]/CE
+ 86  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[48]/CE
+ 87  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[49]/CE
+ 88  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[50]/CE
+ 89  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[51]/CE
+ 90  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[52]/CE
+ 91  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[53]/CE
+ 92  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[54]/CE
+ 93  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[55]/CE
+ 94  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[56]/CE
+ 95  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[57]/CE
+ 96  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[58]/CE
+ 97  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[59]/CE
+ 98  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[60]/CE
+ 99  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[61]/CE
+100  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[62]/CE
+101  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/new_order_ref_reg[63]/CE
+102  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/new_ref_sr_reg[0]/D
+103  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/new_ref_sr_reg[1]/D
+104  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/new_ref_sr_reg[2]/D
+105  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/new_ref_sr_reg[3]/D
+106  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/new_ref_sr_reg[4]/D
+107  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/new_ref_sr_reg[5]/D
+108  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/new_ref_sr_reg[6]/D
+109  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/new_ref_sr_reg[7]/D
+110  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[0]/CE
+111  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/order_ref_reg[0]/D
+112  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[1]/CE
+113  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/order_ref_reg[1]/D
+114  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[2]/CE
+115  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/order_ref_reg[2]/D
+116  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[3]/CE
+117  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/order_ref_reg[3]/D
+118  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[4]/CE
+119  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/order_ref_reg[4]/D
+120  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[5]/CE
+121  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/order_ref_reg[5]/D
+122  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[6]/CE
+123  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/order_ref_reg[6]/D
+124  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[7]/CE
+125  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/order_ref_reg[7]/D
+126  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[8]/CE
+127  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[9]/CE
+128  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[10]/CE
+129  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[11]/CE
+130  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[12]/CE
+131  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[13]/CE
+132  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[14]/CE
+133  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[15]/CE
+134  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[16]/CE
+135  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[17]/CE
+136  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[18]/CE
+137  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[19]/CE
+138  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[20]/CE
+139  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[21]/CE
+140  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[22]/CE
+141  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[23]/CE
+142  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[24]/CE
+143  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[25]/CE
+144  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[26]/CE
+145  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[27]/CE
+146  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[28]/CE
+147  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[29]/CE
+148  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[30]/CE
+149  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[31]/CE
+150  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[32]/CE
+151  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[33]/CE
+152  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[34]/CE
+153  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[35]/CE
+154  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[36]/CE
+155  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[37]/CE
+156  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[38]/CE
+157  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[39]/CE
+158  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[40]/CE
+159  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[41]/CE
+160  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[42]/CE
+161  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[43]/CE
+162  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[44]/CE
+163  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[45]/CE
+164  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[46]/CE
+165  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[47]/CE
+166  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[48]/CE
+167  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[49]/CE
+168  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[50]/CE
+169  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[51]/CE
+170  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[52]/CE
+171  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[53]/CE
+172  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[54]/CE
+173  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[55]/CE
+174  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[56]/CE
+175  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[57]/CE
+176  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[58]/CE
+177  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[59]/CE
+178  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[60]/CE
+179  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[61]/CE
+180  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[62]/CE
+181  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/order_ref_reg[63]/CE
+182  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/pr_sr_reg[0]/D
+183  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/pr_sr_reg[1]/D
+184  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/pr_sr_reg[2]/D
+185  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/pr_sr_reg[3]/D
+186  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/pr_sr_reg[4]/D
+187  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/pr_sr_reg[5]/D
+188  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/pr_sr_reg[6]/D
+189  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/pr_sr_reg[7]/D
+190  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[0]/CE
+191  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/price_reg[0]/D
+192  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[0]/R
+193  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[1]/CE
+194  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/price_reg[1]/D
+195  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[1]/R
+196  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[2]/CE
+197  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/price_reg[2]/D
+198  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[2]/R
+199  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[3]/CE
+200  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/price_reg[3]/D
+201  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[3]/R
+202  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[4]/CE
+203  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/price_reg[4]/D
+204  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[4]/R
+205  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[5]/CE
+206  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/price_reg[5]/D
+207  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[5]/R
+208  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[6]/CE
+209  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/price_reg[6]/D
+210  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[6]/R
+211  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[7]/CE
+212  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/price_reg[7]/D
+213  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[7]/R
+214  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[8]/CE
+215  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[8]/R
+216  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[9]/CE
+217  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[9]/R
+218  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[10]/CE
+219  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[10]/R
+220  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[11]/CE
+221  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[11]/R
+222  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[12]/CE
+223  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[12]/R
+224  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[13]/CE
+225  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[13]/R
+226  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[14]/CE
+227  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[14]/R
+228  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[15]/CE
+229  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[15]/R
+230  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[16]/CE
+231  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[16]/R
+232  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[17]/CE
+233  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[17]/R
+234  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[18]/CE
+235  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[18]/R
+236  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[19]/CE
+237  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[19]/R
+238  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[20]/CE
+239  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[20]/R
+240  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[21]/CE
+241  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[21]/R
+242  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[22]/CE
+243  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[22]/R
+244  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[23]/CE
+245  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[23]/R
+246  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[24]/CE
+247  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[24]/R
+248  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[25]/CE
+249  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[25]/R
+250  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[26]/CE
+251  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[26]/R
+252  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[27]/CE
+253  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[27]/R
+254  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[28]/CE
+255  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[28]/R
+256  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[29]/CE
+257  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[29]/R
+258  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[30]/CE
+259  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[30]/R
+260  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[31]/CE
+261  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/price_reg[31]/R
+262  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/ref_sr_reg[0]/D
+263  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/ref_sr_reg[1]/D
+264  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/ref_sr_reg[2]/D
+265  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/ref_sr_reg[3]/D
+266  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/ref_sr_reg[4]/D
+267  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/ref_sr_reg[5]/D
+268  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/ref_sr_reg[6]/D
+269  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/ref_sr_reg[7]/D
+270  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/sh_sr_reg[0]/D
+271  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/sh_sr_reg[1]/D
+272  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/sh_sr_reg[2]/D
+273  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/sh_sr_reg[3]/D
+274  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/sh_sr_reg[4]/D
+275  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/sh_sr_reg[5]/D
+276  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/sh_sr_reg[6]/D
+277  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/sh_sr_reg[7]/D
+278  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[0]/CE
+279  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/CLK  u_core/u_parser/shares_reg[0]/D
+280  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[1]/CE
+281  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/shares_reg[1]/D
+282  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[2]/CE
+283  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/CLK  u_core/u_parser/shares_reg[2]/D
+284  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[3]/CE
+285  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/CLK  u_core/u_parser/shares_reg[3]/D
+286  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[4]/CE
+287  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/CLK  u_core/u_parser/shares_reg[4]/D
+288  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[5]/CE
+289  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/CLK  u_core/u_parser/shares_reg[5]/D
+290  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[6]/CE
+291  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/CLK  u_core/u_parser/shares_reg[6]/D
+292  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[7]/CE
+293  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/CLK  u_core/u_parser/shares_reg[7]/D
+294  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[8]/CE
+295  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[9]/CE
+296  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[10]/CE
+297  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[11]/CE
+298  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[12]/CE
+299  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[13]/CE
+300  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[14]/CE
+301  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[15]/CE
+302  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[16]/CE
+303  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[17]/CE
+304  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[18]/CE
+305  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[19]/CE
+306  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[20]/CE
+307  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[21]/CE
+308  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[22]/CE
+309  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[23]/CE
+310  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[24]/CE
+311  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[25]/CE
+312  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[26]/CE
+313  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[27]/CE
+314  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[28]/CE
+315  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[29]/CE
+316  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[30]/CE
+317  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/shares_reg[31]/CE
+318  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/side_r_reg/D
+319  CDC-1   Critical  1-bit unknown CDC circuitry                         0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/CLK   u_core/u_parser/side_reg/CE
+320  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/CLK  u_core/u_parser/side_reg/D
+321  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_ingress/u_fifo/wgray_reg[8:0]/C              u_ingress/u_fifo/wq_reg[0][8:0]/D
+322  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_ingress/u_fifo/wbin_reg[9]/C                 u_ingress/u_fifo/wq_reg[0][9]/D
+
+Source Clock: input port clock
+Destination Clock: clk_core
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                            Depth  Exception   Source (From)  Destination (To)
+---  ------  --------  -------------------------------------  -----  ----------  -------------  --------------------------
+  1  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  halt           u_halt/sync_reg[0]/D
+  2  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  rst_core_n     u_rst_core/sync_reg[0]/CLR
+
+Source Clock: clk_core
+Destination Clock: clk_host
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                                     Depth  Exception                Source (From)                      Destination (To)
+---  ------  --------  ----------------------------------------------  -----  -----------------------  ---------------------------------  ---------------------------------
+  1  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_ar/u_fifo/rgray_reg[1:0]/C  u_axil_ar/u_fifo/rq_reg[0][1:0]/D
+  2  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_ar/u_fifo/rbin_reg[2]/C     u_axil_ar/u_fifo/rq_reg[0][2]/D
+  3  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_aw/u_fifo/rgray_reg[1:0]/C  u_axil_aw/u_fifo/rq_reg[0][1:0]/D
+  4  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_aw/u_fifo/rbin_reg[2]/C     u_axil_aw/u_fifo/rq_reg[0][2]/D
+  5  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_b/u_fifo/wgray_reg[1:0]/C   u_axil_b/u_fifo/wq_reg[0][1:0]/D
+  6  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_b/u_fifo/wbin_reg[2]/C      u_axil_b/u_fifo/wq_reg[0][2]/D
+  7  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_r/u_fifo/wgray_reg[1:0]/C   u_axil_r/u_fifo/wq_reg[0][1:0]/D
+  8  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_r/u_fifo/wbin_reg[2]/C      u_axil_r/u_fifo/wq_reg[0][2]/D
+  9  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_axil_w/u_fifo/rgray_reg[1:0]/C   u_axil_w/u_fifo/rq_reg[0][1:0]/D
+ 10  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_axil_w/u_fifo/rbin_reg[2]/C      u_axil_w/u_fifo/rq_reg[0][2]/D
+ 11  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_cfg/ack_tog_reg/C                u_cfg/u_ack/sync_reg[0]/D
+ 12  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  decision_overflow_core_reg/C       u_dec_ovf/sync_reg[0]/D
+ 13  CDC-6   Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_egress/u_fifo/wgray_reg[5:0]/C   u_egress/u_fifo/wq_reg[0][5:0]/D
+ 14  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_egress/u_fifo/wbin_reg[6]/C      u_egress/u_fifo/wq_reg[0][6]/D
+ 15  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_risk_evt/data_hold_reg[0]/C      u_risk_evt/dst_data_reg[0]/D
+ 16  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_risk_evt/data_hold_reg[1]/C      u_risk_evt/dst_data_reg[1]/D
+ 17  CDC-15  Warning   Clock enable controlled CDC structure detected      0  Max Delay Datapath Only  u_risk_evt/data_hold_reg[2]/C      u_risk_evt/dst_data_reg[2]/D
+ 18  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_risk_evt/req_tog_reg/C           u_risk_evt/u_req/sync_reg[0]/D
+ 19  CDC-3   Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  risk_evt_overflow_core_reg/C       u_risk_ovf/sync_reg[0]/D
+
+Source Clock: input port clock
+Destination Clock: clk_host
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                            Depth  Exception   Source (From)     Destination (To)
+---  ------  --------  -------------------------------------  -----  ----------  ----------------  -------------------------------------------
+  1  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  strat_sel[0]      cfg_load_pending_reg/CE
+  2  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  strat_sel[0]      cfg_sent_host_reg[0]/CE
+  3  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  strat_sel[0]      cfg_sent_host_reg[0]/D
+  4  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  strat_sel[0]      cfg_sent_host_reg[1]/CE
+  5  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  strat_sel[1]      cfg_sent_host_reg[1]/D
+  6  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  strat_sel[0]      cfg_valid_host_reg/D
+  7  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/full_reg/D
+  8  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[0]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA/I
+  9  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA/WE
+ 10  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[1]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA_D1/I
+ 11  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMA_D1/WE
+ 12  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[2]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/I
+ 13  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB/WE
+ 14  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[3]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/I
+ 15  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMB_D1/WE
+ 16  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[4]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC/I
+ 17  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC/WE
+ 18  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[5]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC_D1/I
+ 19  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMC_D1/WE
+ 20  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[6]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD/I
+ 21  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD/WE
+ 22  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[7]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD_D1/I
+ 23  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMD_D1/WE
+ 24  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_araddr[8]  u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAME/I
+ 25  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAME/WE
+ 26  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAME_D1/WE
+ 27  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMF/WE
+ 28  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMF_D1/WE
+ 29  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMG/WE
+ 30  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMG_D1/WE
+ 31  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMH/WE
+ 32  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/mem_reg_0_3_0_8/RAMH_D1/WE
+ 33  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/wbin_reg[0]/D
+ 34  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/wbin_reg[1]/D
+ 35  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/wbin_reg[2]/D
+ 36  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/wgray_reg[0]/D
+ 37  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_arvalid    u_axil_ar/u_fifo/wgray_reg[1]/D
+ 38  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/full_reg/D
+ 39  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[0]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA/I
+ 40  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA/WE
+ 41  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[1]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA_D1/I
+ 42  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMA_D1/WE
+ 43  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[2]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB/I
+ 44  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB/WE
+ 45  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[3]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB_D1/I
+ 46  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMB_D1/WE
+ 47  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[4]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC/I
+ 48  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC/WE
+ 49  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[5]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC_D1/I
+ 50  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMC_D1/WE
+ 51  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[6]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD/I
+ 52  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD/WE
+ 53  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[7]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD_D1/I
+ 54  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMD_D1/WE
+ 55  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awaddr[8]  u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAME/I
+ 56  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAME/WE
+ 57  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAME_D1/WE
+ 58  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMF/WE
+ 59  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMF_D1/WE
+ 60  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMG/WE
+ 61  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMG_D1/WE
+ 62  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMH/WE
+ 63  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/mem_reg_0_3_0_8/RAMH_D1/WE
+ 64  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/wbin_reg[0]/D
+ 65  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/wbin_reg[1]/D
+ 66  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/wbin_reg[2]/D
+ 67  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/wgray_reg[0]/D
+ 68  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_awvalid    u_axil_aw/u_fifo/wgray_reg[1]/D
+ 69  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/empty_reg/D
+ 70  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/rbin_reg[0]/D
+ 71  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/rbin_reg[1]/D
+ 72  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/rbin_reg[2]/D
+ 73  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/rgray_reg[0]/D
+ 74  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_bready     u_axil_b/u_fifo/rgray_reg[1]/D
+ 75  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/empty_reg/D
+ 76  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/rbin_reg[0]/D
+ 77  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/rbin_reg[1]/D
+ 78  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/rbin_reg[2]/D
+ 79  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/rgray_reg[0]/D
+ 80  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_rready     u_axil_r/u_fifo/rgray_reg[1]/D
+ 81  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/full_reg/D
+ 82  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_wdata[0]   u_axil_w/u_fifo/mem_reg_0_3_0_13/DP/I
+ 83  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_wvalid     u_axil_w/u_fifo/mem_reg_0_3_0_13/DP/WE
+ 84  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_wdata[0]   u_axil_w/u_fifo/mem_reg_0_3_0_13/SP/I
+ 85  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axil_wvalid     u_axil_w/u_fifo/mem_reg_0_3_0_13/SP/WE
+ 86  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/wbin_reg[0]/D
+ 87  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/wbin_reg[1]/D
+ 88  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/wbin_reg[2]/D
+ 89  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/wgray_reg[0]/D
+ 90  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axil_wvalid     u_axil_w/u_fifo/wgray_reg[1]/D
+ 91  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  strat_sel[0]      u_cfg/data_hold_reg[0]/D
+ 92  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  strat_sel[1]      u_cfg/data_hold_reg[1]/D
+ 93  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/empty_reg/D
+ 94  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[0]/D
+ 95  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[1]/D
+ 96  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[2]/D
+ 97  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[3]/D
+ 98  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[4]/D
+ 99  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[5]/D
+100  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rbin_reg[6]/D
+101  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[0]/D
+102  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[1]/D
+103  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[2]/D
+104  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[3]/D
+105  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[4]/D
+106  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  m_axis_tready     u_egress/u_fifo/rgray_reg[5]/D
+107  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  rst_host_n        u_rst_host/sync_reg[0]/CLR
+
+Source Clock: clk_core
+Destination Clock: clk_line
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                     Depth  Exception                Source (From)                      Destination (To)
+---  -----  --------  ----------------------------------------------  -----  -----------------------  ---------------------------------  ---------------------------------
+  1  CDC-6  Warning   Multi-bit synchronized with ASYNC_REG property      2  Max Delay Datapath Only  u_ingress/u_fifo/rgray_reg[8:0]/C  u_ingress/u_fifo/rq_reg[0][8:0]/D
+  2  CDC-3  Info      1-bit synchronized with ASYNC_REG property          2  Max Delay Datapath Only  u_ingress/u_fifo/rbin_reg[9]/C     u_ingress/u_fifo/rq_reg[0][9]/D
+
+Source Clock: input port clock
+Destination Clock: clk_line
+CDC Type: No Common Primary Clock
+
+Row  ID      Severity  Description                            Depth  Exception   Source (From)    Destination (To)
+---  ------  --------  -------------------------------------  -----  ----------  ---------------  --------------------------------------------
+  1  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/full_reg/D
+  2  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMA/I
+  3  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMA/WE
+  4  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMB/I
+  5  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMB/WE
+  6  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMC/I
+  7  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMC/WE
+  8  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMD/I
+  9  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMD/WE
+ 10  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAME/I
+ 11  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAME/WE
+ 12  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMF/I
+ 13  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMF/WE
+ 14  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_0_63_0_6/RAMG/I
+ 15  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMG/WE
+ 16  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_0_6/RAMH/WE
+ 17  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_0_63_7_8/RAMA/I
+ 18  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_7_8/RAMA/WE
+ 19  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_0_63_7_8/RAMB/I
+ 20  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_7_8/RAMB/WE
+ 21  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_7_8/RAMC/WE
+ 22  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_0_63_7_8/RAMD/WE
+ 23  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/I
+ 24  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMA/WE
+ 25  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMB/I
+ 26  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMB/WE
+ 27  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/I
+ 28  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMC/WE
+ 29  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMD/I
+ 30  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMD/WE
+ 31  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAME/I
+ 32  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAME/WE
+ 33  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMF/I
+ 34  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMF/WE
+ 35  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_128_191_0_6/RAMG/I
+ 36  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMG/WE
+ 37  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_0_6/RAMH/WE
+ 38  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/I
+ 39  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_7_8/RAMA/WE
+ 40  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_128_191_7_8/RAMB/I
+ 41  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_7_8/RAMB/WE
+ 42  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_7_8/RAMC/WE
+ 43  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_128_191_7_8/RAMD/WE
+ 44  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMA/I
+ 45  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMA/WE
+ 46  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMB/I
+ 47  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMB/WE
+ 48  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMC/I
+ 49  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMC/WE
+ 50  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/I
+ 51  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMD/WE
+ 52  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAME/I
+ 53  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAME/WE
+ 54  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/I
+ 55  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMF/WE
+ 56  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_192_255_0_6/RAMG/I
+ 57  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMG/WE
+ 58  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_0_6/RAMH/WE
+ 59  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_192_255_7_8/RAMA/I
+ 60  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_7_8/RAMA/WE
+ 61  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_192_255_7_8/RAMB/I
+ 62  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_7_8/RAMB/WE
+ 63  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_7_8/RAMC/WE
+ 64  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_192_255_7_8/RAMD/WE
+ 65  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMA/I
+ 66  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMA/WE
+ 67  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMB/I
+ 68  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMB/WE
+ 69  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMC/I
+ 70  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMC/WE
+ 71  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMD/I
+ 72  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMD/WE
+ 73  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAME/I
+ 74  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAME/WE
+ 75  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMF/I
+ 76  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMF/WE
+ 77  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_256_319_0_6/RAMG/I
+ 78  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMG/WE
+ 79  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_0_6/RAMH/WE
+ 80  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_256_319_7_8/RAMA/I
+ 81  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_7_8/RAMA/WE
+ 82  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_256_319_7_8/RAMB/I
+ 83  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_7_8/RAMB/WE
+ 84  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_7_8/RAMC/WE
+ 85  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_256_319_7_8/RAMD/WE
+ 86  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMA/I
+ 87  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMA/WE
+ 88  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMB/I
+ 89  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMB/WE
+ 90  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMC/I
+ 91  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMC/WE
+ 92  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMD/I
+ 93  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMD/WE
+ 94  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAME/I
+ 95  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAME/WE
+ 96  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMF/I
+ 97  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMF/WE
+ 98  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_320_383_0_6/RAMG/I
+ 99  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMG/WE
+100  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_0_6/RAMH/WE
+101  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_320_383_7_8/RAMA/I
+102  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_7_8/RAMA/WE
+103  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_320_383_7_8/RAMB/I
+104  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_7_8/RAMB/WE
+105  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_7_8/RAMC/WE
+106  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_320_383_7_8/RAMD/WE
+107  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMA/I
+108  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMA/WE
+109  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMB/I
+110  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMB/WE
+111  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMC/I
+112  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMC/WE
+113  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMD/I
+114  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMD/WE
+115  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAME/I
+116  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAME/WE
+117  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMF/I
+118  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMF/WE
+119  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_384_447_0_6/RAMG/I
+120  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMG/WE
+121  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_0_6/RAMH/WE
+122  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_384_447_7_8/RAMA/I
+123  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_7_8/RAMA/WE
+124  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_384_447_7_8/RAMB/I
+125  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_7_8/RAMB/WE
+126  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_7_8/RAMC/WE
+127  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_384_447_7_8/RAMD/WE
+128  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMA/I
+129  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMA/WE
+130  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/I
+131  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMB/WE
+132  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMC/I
+133  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMC/WE
+134  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMD/I
+135  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMD/WE
+136  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/I
+137  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAME/WE
+138  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMF/I
+139  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMF/WE
+140  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/I
+141  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMG/WE
+142  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_0_6/RAMH/WE
+143  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_448_511_7_8/RAMA/I
+144  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_7_8/RAMA/WE
+145  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_448_511_7_8/RAMB/I
+146  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_7_8/RAMB/WE
+147  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_7_8/RAMC/WE
+148  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_448_511_7_8/RAMD/WE
+149  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[0]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMA/I
+150  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMA/WE
+151  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[1]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMB/I
+152  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMB/WE
+153  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[2]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMC/I
+154  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMC/WE
+155  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[3]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMD/I
+156  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMD/WE
+157  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[4]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAME/I
+158  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAME/WE
+159  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[5]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMF/I
+160  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMF/WE
+161  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[6]  u_ingress/u_fifo/mem_reg_64_127_0_6/RAMG/I
+162  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMG/WE
+163  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_0_6/RAMH/WE
+164  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tdata[7]  u_ingress/u_fifo/mem_reg_64_127_7_8/RAMA/I
+165  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_7_8/RAMA/WE
+166  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tlast     u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/I
+167  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_7_8/RAMB/WE
+168  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_7_8/RAMC/WE
+169  CDC-13  Critical  1-bit CDC path on a non-FD primitive       0  False Path  s_axis_tvalid    u_ingress/u_fifo/mem_reg_64_127_7_8/RAMD/WE
+170  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[0]/D
+171  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[1]/D
+172  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[2]/D
+173  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[3]/D
+174  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[4]/D
+175  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[5]/D
+176  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[6]/D
+177  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[7]/D
+178  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[8]/D
+179  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wbin_reg[9]/D
+180  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[0]/D
+181  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[1]/D
+182  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[2]/D
+183  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[3]/D
+184  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[4]/D
+185  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[5]/D
+186  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[6]/D
+187  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[7]/D
+188  CDC-1   Critical  1-bit unknown CDC circuitry                0  False Path  s_axis_tvalid    u_ingress/u_fifo/wgray_reg[8]/D
+189  CDC-26  Warning   LUTRAM read/write potential collision      0  False Path  rst_line_n       u_rst_line/sync_reg[0]/CLR
+

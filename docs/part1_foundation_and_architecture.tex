@@ -353,7 +353,7 @@ paths honestly:
 
   % Fast path result
   \node[nsbox, below=1.0cm of strat] (nslab)
-    {\textasciitilde{}195\,ns tick-to-trade};
+    {\textasciitilde{}205\,ns tick-to-trade};
   \draw[fatarrow] (strat.south) -- (nslab.north);
 
   %% ── Connection between paths ────────────────────────────────
@@ -426,7 +426,7 @@ The log scale is necessary because the two values differ by six orders of magnit
 \addplot+[fill=ibkrlight, draw=ibkrorange, line width=1pt]
   coordinates {(30000000,{IBKR Paper (software path)}) [30\,ms]};
 \addplot+[fill=fpgalight, draw=fpgablue, line width=1pt]
-  coordinates {(195,{FPGA Pipeline (hardware)}) [$\sim$195\,ns]};
+  coordinates {(205,{FPGA Pipeline (hardware)}) [$\sim$205\,ns]};
 \end{axis}
 \end{tikzpicture}
 \end{center}

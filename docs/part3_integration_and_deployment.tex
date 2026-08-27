@@ -489,13 +489,13 @@ p99                       & \todo\ ms \\
 \addplot+[fill=ibkrlight, draw=ibkrorange, line width=1pt]
   coordinates {(30000000,{IBKR Paper (software path)}) [30\,ms]};
 \addplot+[fill=fpgalight, draw=fpgablue, line width=1pt]
-  coordinates {(195,{FPGA Pipeline (hardware)}) [$\sim$195\,ns]};
+  coordinates {(205,{FPGA Pipeline (hardware)}) [$\sim$205\,ns]};
 \end{axis}
 \end{tikzpicture}
 \end{center}
 
 \noindent The FPGA is approximately \textbf{154{,}000$\times$ faster}
-(195\,ns measured vs.\ 30\,ms).
+(205\,ns measured vs.\ 30\,ms).
 The log scale is necessary — on a linear scale the FPGA bar would be invisible.
 This single chart is the core portfolio artefact.
 
@@ -566,7 +566,7 @@ This single chart is the core portfolio artefact.
 \cmark & \texttt{order\_book\_m2.sv}: 28/28 tests, multi-level + RESCAN & Done \\
 \cmark & \texttt{strategy\_imbalance.sv}: 21/21 tests, depth-weighted & Done \\
 \cmark & \texttt{latency\_counter.sv}: 5/5 tests, AXI-Lite readout & Done \\
-\cmark & Integration test (\texttt{tick\_to\_trade\_top}): 5/5, \textbf{195\,ns} measured & Done \\
+\cmark & Integration test (\texttt{tick\_to\_trade\_top}): 5/5, \textbf{205\,ns} measured & Done \\
 \cmark & \texttt{order\_book\_m2} wired into top-level; \texttt{msg\_ready} backpressure & Done \\
 \cmark & Host: IBKR dry-run (\texttt{python ibkr\_bridge.py --demo}) & Done \\
 \cmark & Jupyter latency dashboard (4 charts) & Done \\
@@ -617,7 +617,7 @@ Once hardware latency numbers are in hand, post this:
     targeting AWS F1 (Xilinx UltraScale+ VU9P).}\\[0.6em]
     The FPGA parses NASDAQ TotalView-ITCH 5.0 messages, maintains a limit
     order book, and generates a trading signal entirely in hardware ---
-    \textbf{195\,ns tick-to-trade latency} (39 cycles @ 200\,MHz) measured with
+    \textbf{205\,ns tick-to-trade latency} (41 cycles @ 200\,MHz) measured with
     on-chip hardware counters.\\[0.6em]
     For comparison, the same decision routed through a Python bridge to an IBKR
     paper account takes \textbf{\textasciitilde{}30\,ms} --- roughly

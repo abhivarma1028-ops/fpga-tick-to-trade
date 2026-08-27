@@ -1,0 +1,15 @@
+HFT FPGA PROJECT — RESUME BULLET POINTS
+========================================
+
+FULL VERSION (2 bullets)
+------------------------
+- Architected and verified a fully-pipelined FPGA tick-to-trade engine in SystemVerilog (NASDAQ ITCH parser, 256-order limit order book, depth-weighted imbalance strategy, pre-trade risk checks), achieving 205 ns deterministic tick-to-trade latency (41 cycles @ 200 MHz, zero jitter) - ~5x faster than an optimized C baseline while eliminating the CPU's ~1 ms tail-latency spikes.
+
+- Drove the design through full Vivado synthesis and place-and-route on a Xilinx UltraScale+ FPGA (timing-closed at 200 MHz, ~7K LUTs, 200 MB/s line-rate ITCH ingest) and validated correctness with 81/81 cocotb tests against a bit-accurate Python golden model.
+
+
+SHORT VERSION (1 line each, space-tight resumes)
+------------------------------------------------
+- Built a SystemVerilog FPGA tick-to-trade engine (ITCH -> order book -> strategy -> risk) with 205 ns deterministic latency (0 jitter, ~5x faster than optimized C); timing-closed at 200 MHz on Xilinx UltraScale+.
+
+- Verified the full pipeline with 81/81 cocotb tests against a bit-accurate Python golden model; 200 MB/s line-rate ITCH parsing, ~7K LUTs.

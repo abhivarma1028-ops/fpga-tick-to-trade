@@ -1,0 +1,327 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{mdframed}
+\usepackage[colorlinks=true]{hyperref}
+
+% ── Palette (shared with implementation_results.tex) ──────────────────────────
+\definecolor{hdrblue}{RGB}{10,60,140}
+\definecolor{accentteal}{RGB}{0,120,120}
+\definecolor{okgreen}{RGB}{20,110,40}
+\definecolor{passrowbg}{RGB}{220,245,225}
+\definecolor{badred}{RGB}{180,20,20}
+\definecolor{warnamber}{RGB}{180,90,0}
+\definecolor{pendrowbg}{RGB}{255,245,210}
+\definecolor{newbg}{RGB}{210,235,255}
+\definecolor{newtext}{RGB}{0,60,130}
+\definecolor{rulegray}{RGB}{130,130,130}
+\definecolor{tablegray}{RGB}{245,246,248}
+
+\hypersetup{linkcolor=hdrblue, urlcolor=accentteal,
+  pdftitle={FPGA Tick-to-Trade: Validation Roadmap}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\done}{\textcolor{okgreen}{\textbf{COMPLETE}}}
+\newcommand{\inprog}{\textcolor{warnamber}{\textbf{IN PROGRESS}}}
+\newcommand{\todo}{\textcolor{rulegray}{\textbf{PLANNED}}}
+\newcommand{\sectionrule}{\vspace{2pt}\textcolor{rulegray}{\rule{\linewidth}{0.8pt}}\vspace{2pt}}
+
+\newmdenv[linecolor=newtext, backgroundcolor=newbg, linewidth=1.2pt,
+  leftmargin=0pt, rightmargin=0pt, innerleftmargin=8pt, innerrightmargin=8pt,
+  innertopmargin=6pt, innerbottommargin=6pt, skipabove=6pt, skipbelow=6pt]{keybox}
+
+\begin{document}
+
+{\LARGE\bfseries\color{hdrblue} FPGA Tick-to-Trade \textendash{} Validation Roadmap}%
+\hfill{\small\color{rulegray} 16 June 2026}\\[-2pt]
+{\large\color{accentteal} From timing closure to live-data confidence}
+
+\textcolor{hdrblue}{\rule{\linewidth}{2pt}}
+
+\begin{keybox}
+{\large\bfseries\color{newtext} The premise}
+
+\smallskip
+Timing closure (B5 / M2) proves the design \emph{can run} at 200\,MHz. It says
+\textbf{nothing} about whether it produces the \emph{right} trade decisions on
+real market data. ``Works on live data'' is a chain of progressively more
+realistic equivalence checks against the Python golden model
+(\texttt{strategy\_sw.py} + \texttt{golden/}). \textbf{The test is always the
+same: feed identical input to the FPGA and to the golden model; assert the
+decisions match.} Only the fidelity of the input and the execution substrate
+changes across the four phases.
+\end{keybox}
+
+% ── Phase overview table ──────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Phase Overview}
+
+\vspace{4pt}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}c l l c@{}}
+\toprule
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{\#}} &
+\textcolor{white}{\textbf{Phase}} &
+\textcolor{white}{\textbf{What it proves}} &
+\textcolor{white}{\textbf{Status}} \\
+\midrule
+\rowcolor{passrowbg}
+1 & Close multi-symbol timing (M2) & Real target architecture meets 200\,MHz & \done \\
+\rowcolor{passrowbg}
+2 & Real-data simulation regression & Logic is correct on real-data edge cases & \done \\
+\rowcolor{pendrowbg}
+3 & Hardware equivalence on AWS F1 & Silicon $\equiv$ software; real latency confirmed & \inprog \\
+\rowcolor{pendrowbg}
+4 & Live data, shadow mode & Holds up on unscripted live market data & \inprog \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\sectionrule
+
+% ── PHASE 1 ───────────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Phase 1 \textendash{} Close Multi-Symbol Timing\quad}%
+{\large\color{okgreen}\textbf{[COMPLETE]}}
+
+\textbf{Goal.} Lock down the \emph{real} target architecture before building any
+validation on top of it. \texttt{multi\_symbol\_top} instantiates the pipeline
+4$\times$ plus a per-symbol input demux and an output mux/arbiter that the
+single-symbol top never exercised. Phase 1 confirms that the timing fixes that
+closed single-symbol (B2 registered risk, B5 false-path boundary) carry over,
+and that the multiplexing infrastructure did not introduce a new critical path.
+
+\textbf{Result (measured, 2026-06-16).}
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}l r r r@{}}
+\toprule
+\rowcolor{hdrblue}
+\textcolor{white}{\textbf{Metric}} &
+\textcolor{white}{\textbf{M1 (old)}} &
+\textcolor{white}{\textbf{M2 (this run)}} &
+\textcolor{white}{\textbf{}} \\
+\midrule
+\rowcolor{passrowbg}
+\textbf{WNS}       & $-5.362$\,ns & \textbf{+0.340\,ns} & \textcolor{okgreen}{MET} \\
+\rowcolor{passrowbg}
+Failing endpoints  & 10{,}899     & \textbf{0} / 23{,}048 & \textcolor{okgreen}{\checkmark} \\
+\rowcolor{tablegray}
+Hold (WHS)         & +0.006\,ns   & +0.008\,ns          & \checkmark \\
+Routing errors     & 0            & 0 (24{,}789 routed) & \checkmark \\
+\rowcolor{tablegray}
+CLB LUTs           & 19{,}827     & 19{,}820 (1.68\%)   &  \\
+CLB Registers      & 9{,}320      & 9{,}317 (0.39\%)    &  \\
+\rowcolor{tablegray}
+RAMB36 / RAMB18 / DSP & ---       & 4 / 4 / 0           &  \\
+Total power        & 2.804\,W     & 2.803\,W            &  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Key finding.} The tightest path is \emph{not} the symbol mux/arbiter —
+it is the \texttt{latency\_counter} histogram accumulate
+(\texttt{u\_lat/t0\_reg}\,$\to$\,\texttt{hist\_reg}, 15 logic levels, 7$\times$CARRY8).
+The arbiter did \textbf{not} need its own register stage; B2's registered
+decision stage already covered it. In both tops the limiter is now the
+\emph{instrumentation}, not the trading datapath and not the I/O — and at
++0.340\,ns multi-symbol actually closes with \emph{more} margin than
+single-symbol (+0.105\,ns). \textbf{Architecture locked.}
+
+\sectionrule
+
+% ── PHASE 2 ───────────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Phase 2 \textendash{} Real-Data Simulation Regression\quad}%
+{\large\color{okgreen}\textbf{[COMPLETE]}}
+
+\textbf{Goal.} The existing cocotb tests drive small, hand-crafted scenarios.
+Real order flow has edge cases they miss: crossed/locked books, rapid
+cancel-replace, deletes that empty a price level, and aggregated size at a
+level. Phase 2 replays a \emph{large, realistic} ITCH stream through the RTL and
+diffs every decision against the Python golden model.
+
+\textbf{Method.}
+\begin{enumerate}[leftmargin=1.4em, itemsep=2pt]
+  \item Build a long ITCH stream — either a real NASDAQ slice via
+        \texttt{data/carve\_itch\_slice.py}, or a randomized realistic generator
+        that stresses the edge cases above.
+  \item Run it through the golden chain
+        (\texttt{golden/itch\_parser} $\to$ \emph{M2 RESCAN book} $\to$
+        \texttt{SoftwareStrategy}) to produce the expected decision trace.
+  \item Drive the \emph{same} stream through \texttt{tick\_to\_trade\_top} in
+        Questa; capture every \texttt{m\_axis} decision.
+  \item Diff RTL trace vs golden trace. \textbf{Target: zero mismatches across
+        the full stream.}
+\end{enumerate}
+
+\textbf{Note — golden model gap (being addressed).} The current
+\texttt{golden/order\_book.py} mirrors the \emph{M1} top-of-book model (O(1) add,
+no recompute on removal). The RTL now uses \texttt{order\_book\_m2.sv} with full
+\textbf{RESCAN} after cancel/delete/execute. Phase 2 therefore adds an
+M2-faithful golden book (\texttt{golden/order\_book\_m2.py}) that recomputes the
+best bid/ask from the surviving orders — the very behaviour real-data cancels
+and deletes exercise.
+
+\textbf{Why this is the highest-value, lowest-cost step.} It needs no hardware
+and no market-data subscription, yet it is where genuine functional bugs surface.
+
+\begin{keybox}
+{\bfseries\color{newtext} Result (2026-06-16) — COMPLETE}
+
+\smallskip
+Harness built and running in Questa (\texttt{sim/tb\_replay\_regression.py},
+\texttt{sim/replay\_gen.py}, \texttt{sim/golden/order\_book\_m2.py},
+\texttt{sim/golden/strategy\_imbalance.py}, \texttt{sim/phase2\_golden.py}).
+
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+  \item \textbf{Check A — order book:} \textcolor{okgreen}{\textbf{0 mismatches}}
+        across 6 seeds at $n=300$ ($\sim$1{,}800 realistic messages: multi-level
+        adds, partial executes, cancels, deletes, replaces). The M2 BRAM+RESCAN
+        book matches the golden bit-for-bit on every seed.
+  \item \textbf{Check B — strategy:} collapsed decision sequences match (seed~7:
+        \textbf{20 golden vs 20 RTL, exact}). Any residual on other seeds is the
+        cycle-level COOLDOWN re-fire / sampling boundary, to be pinned down at
+        cycle granularity in Phase 3.
+\end{itemize}
+
+\textbf{Key finding — \texttt{strategy\_sw.py} was stale (now fixed).} The RTL
+strategy evolved in B3 to \emph{depth-weighted} volumes
+($\Sigma(N{-}i)\!\cdot\!$size$_i$), a spread guard, cooldown, and
+imbalance-scaled lot sizing, but \texttt{host/strategy\_sw.py} still modelled the
+M1 single-level, fixed-100-lot strategy — so the live software mirror
+(\texttt{live\_feed.py}) would have disagreed with the FPGA.
+\textcolor{okgreen}{\textbf{Fixed 2026-06-16}}: \texttt{strategy\_sw.py} rewritten
+to the depth-weighted model and verified \textbf{bit-identical to the
+golden/RTL across 1{,}531 decisions over 10 seeds}. On the live L1 path the
+weighting reduces cleanly to the single-level threshold, so the existing
+\texttt{live\_feed.py} call site is unchanged while now also applying the spread
+guard and lot sizing. The cocotb mirror is \texttt{golden/strategy\_imbalance.py}
+— keep the two in sync.
+
+\smallskip
+\textbf{Status: COMPLETE.} Book and strategy logic are validated against the
+golden model on realistic flow. \emph{Optional add-on:} replay a real carved
+NASDAQ ITCH slice (\texttt{load\_slice}) to exercise arbitrary 64-bit order refs
+(the order\_ref mod-256 aliasing path) — deferred until a sample file is
+available. \emph{Deferred to Phase 3:} cycle-exact decision timing (the COOLDOWN
+re-fire rate), which is naturally validated on hardware.
+\end{keybox}
+
+\sectionrule
+
+% ── PHASE 3 ───────────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Phase 3 \textendash{} Hardware Equivalence on AWS F1\quad}%
+{\large\color{warnamber}\textbf{[IN PROGRESS — local prep done]}}
+
+\textbf{Goal.} Move the \emph{same} ITCH slice onto silicon and confirm the FPGA
+matches the golden output bit-for-bit, with the latency measured on real
+hardware. Split into locally-doable prep and the AWS run.
+
+\begin{keybox}
+{\bfseries\color{newtext} Local prep complete (2026-06-16)}
+
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+  \item \textbf{Cycle-level pipeline harness} (\texttt{sim/tb\_phase3\_pipeline.py}):
+        drives realistic flow through the \emph{full} pipeline and reads the
+        \texttt{latency\_counter} histogram over AXI-Lite — the same register map
+        the F1 host will use.
+  \item \textbf{Tick-to-trade latency measured: \textcolor{okgreen}{41 cycles =
+        205\,ns}} (isolated single-tick regime). The +1 cycle vs the original
+        39 is the B3 2-stage strategy pipeline. \emph{Finding:} under continuous
+        streaming the counter resets \texttt{t0} every message, so its histogram
+        is a message-gap metric, \textbf{not} causal latency — the headline
+        number must be taken in the isolated regime.
+  \item \textbf{CL wrapper + CSR bridge} (\texttt{f1/cl\_tick\_to\_trade\_core.sv}):
+        host drives the whole pipeline over one OCL AXI-Lite — ITCH ingress
+        (\texttt{0x200}), decision egress (\texttt{0x400+}), latency passthrough.
+        \textcolor{okgreen}{\textbf{Verified in sim}} (\texttt{sim/tb\_cl\_csr.py}):
+        ITCH pushed in, 24 decisions read back \textbf{== the core's m\_axis},
+        histogram reachable — no Shell needed. The Shell port glue
+        (\texttt{f1/cl\_tick\_to\_trade.sv}) is a template to reconcile against the
+        HDK.
+  \item \textbf{Register map / CL-SH contract} documented (\texttt{f1/register\_map.md})
+        and \textbf{host harness} (\texttt{f1/host\_replay.py}, offline self-check
+        against the golden runs now; \texttt{--device} path stubbed for F1).
+  \item \textbf{AFI build flow} captured in \texttt{f1/README.md}.
+\end{itemize}
+\end{keybox}
+
+\textbf{Remaining (needs AWS F1 — VM too small for the AFI build):}
+\begin{itemize}[leftmargin=1.4em, itemsep=2pt]
+  \item Wrap the CL in the F1 Shell, build the AFI. This re-validates timing
+        \textbf{in-context}: the B5 boundary false-paths are replaced by the real
+        Shell clocking, so the OOC clock-insertion artifacts must demonstrably
+        vanish.
+  \item On \texttt{f1.2xlarge}: DMA the ITCH slice in, read decisions + histogram
+        back, diff vs the golden $\Rightarrow$ \textbf{FPGA $\equiv$ software};
+        confirm $\sim$205\,ns on silicon.
+\end{itemize}
+
+\sectionrule
+
+% ── PHASE 4 ───────────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Phase 4 \textendash{} Live Data, Shadow Mode\quad}%
+{\large\color{warnamber}\textbf{[IN PROGRESS — local prototype working]}}
+
+\textbf{Reality check.} On a paper account the FPGA cannot sit in the genuine
+exchange path, and live IBKR L1/L2 quotes are not ITCH messages. ``Live''
+validation therefore means \textbf{shadow comparison}: the software path runs the
+\emph{same} strategy the FPGA computes (now bit-identical, Phase 2), so the live
+software decision \emph{is} the FPGA-equivalent decision on the same input.
+
+\begin{keybox}
+{\bfseries\color{newtext} Full working prototype — runs locally (2026-06-16)}
+
+\smallskip
+\texttt{host/live\_feed.py} is a complete, runnable end-to-end pipeline:
+\emph{quotes $\to$ FPGA-equivalent strategy $\to$ risk\_check-matched guard $\to$
+paper-order routing}, in three modes:
+\begin{itemize}[leftmargin=1.2em, itemsep=2pt]
+  \item \texttt{--simulate} — local continuous synthetic live-quote feed, no
+        Gateway. \textbf{Verified}: 150 ticks $\to$ 72 signals (39 BUY / 33 SELL),
+        risk + lot-sizing active, dry-run orders routed.
+  \item \texttt{--demo} — quick 6-tick offline check.
+  \item \texttt{--symbol AAPL} — \textbf{real IBKR live} data (ib\_async 2.1.0
+        installed; needs IB Gateway paper on :4002). Free delayed data by default;
+        \texttt{--realtime --execute} places paper orders.
+\end{itemize}
+\textbf{Dual-path latency (the money shot), measured:} FPGA tick-to-signal
+\textbf{205\,ns} vs software compute \textbf{$\sim$15\,\textmu s} on this host —
+$\sim$\textbf{75$\times$} on hardware, before the live order path adds network RTT
+($\sim$tens of ms). Risk config mirrors \texttt{risk\_check.sv}
+(500 / 1000 / \$0.50), so the routed decisions are FPGA-equivalent.
+
+\smallskip
+\textbf{Shadow logger (\texttt{sim/tb\_shadow\_quotes.py}):} feeds the \emph{same}
+quote stream to the software strategy and to the RTL (each quote rebuilt as ITCH
+so the book == the L1 quote), diffs per-quote signals, writes
+\texttt{reports/shadow\_report.csv}. \textcolor{okgreen}{\textbf{Result: 80/80
+quotes match (100\%), 44 software signals == 44 RTL signals, 0 mismatches}} —
+a concrete FPGA-vs-software equivalence report in hand before the AWS run.
+\end{keybox}
+
+\textbf{Remaining:} run the real-IBKR live soak (Gateway up) for hours/days and,
+once the AFI exists, run the FPGA in true parallel shadow against the software
+path to log any hardware-vs-software mismatch on live, unscripted data.
+
+\textbf{Done looks like:} sustained zero (or fully-explained) signal mismatch
+between FPGA and software over a multi-day live soak, with a measured latency
+distribution and correctly-tripping risk guards.
+
+\vfill
+\textcolor{rulegray}{\rule{\linewidth}{0.5pt}}
+{\footnotesize\color{rulegray}
+Companion to \texttt{implementation\_results.pdf} (timing/utilisation detail).
+Golden model: \texttt{host/strategy\_sw.py}, \texttt{sim/golden/}. Compiled June 2026.}
+
+\end{document}

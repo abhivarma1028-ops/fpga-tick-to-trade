@@ -1,0 +1,220 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
+| Date         : Fri Jul 31 16:47:45 2026
+| Host         : abhishek-VMware-Virtual-Platform running 64-bit Ubuntu 24.04.2 LTS
+| Command      : report_control_sets -verbose -file tick_to_trade_mc_top_control_sets_placed.rpt
+| Design       : tick_to_trade_mc_top
+| Device       : xcu200
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |   142 |
+|    Minimum number of control sets                        |   142 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    47 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |   142 |
+| >= 0 to < 4        |     9 |
+| >= 4 to < 6        |     3 |
+| >= 6 to < 8        |     0 |
+| >= 8 to < 10       |     6 |
+| >= 10 to < 12      |     1 |
+| >= 12 to < 14      |     8 |
+| >= 14 to < 16      |     0 |
+| >= 16              |   115 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |              65 |           21 |
+| No           | No                    | Yes                    |             910 |          289 |
+| No           | Yes                   | No                     |               0 |            0 |
+| Yes          | No                    | No                     |             403 |          110 |
+| Yes          | No                    | Yes                    |            3863 |          862 |
+| Yes          | Yes                   | No                     |              32 |            9 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------+----------------------------------------------------------+-----------------------------------+------------------+----------------+--------------+
+| Clock Signal |                       Enable Signal                      |          Set/Reset Signal         | Slice Load Count | Bel Load Count | Bels / Slice |
++--------------+----------------------------------------------------------+-----------------------------------+------------------+----------------+--------------+
+|  clk_host    | u_axil_w/u_fifo/mem_reg_0_3_0_13_i_1_n_0                 |                                   |                1 |              2 |         2.00 |
+|  clk_core    |                                                          | rst_core_n                        |                1 |              3 |         3.00 |
+|  clk_core    | u_core/u_book/scan_ask_lv[cnt][2]_i_1_n_0                | u_rst_core/sync[2]                |                2 |              3 |         1.50 |
+|  clk_core    | u_core/u_book/scan_bid_lv[cnt][2]_i_1_n_0                | u_rst_core/sync[2]                |                2 |              3 |         1.50 |
+|  clk_core    | u_cfg/u_req/E[0]                                         | u_rst_core/sync[2]                |                2 |              3 |         1.50 |
+|  clk_host    |                                                          | rst_host_n                        |                1 |              3 |         3.00 |
+|  clk_host    | u_cfg/u_ack/E[0]                                         | u_rst_host/sync[2]                |                2 |              3 |         1.50 |
+|  clk_host    | u_cfg/u_ack/strat_sel[0][0]                              | u_rst_host/sync[2]                |                1 |              3 |         3.00 |
+|  clk_line    |                                                          | rst_line_n                        |                1 |              3 |         3.00 |
+|  clk_host    | u_risk_evt/u_req/E[0]                                    | u_rst_host/sync[2]                |                2 |              4 |         2.00 |
+|  clk_core    | u_risk_evt/u_ack/E[0]                                    | u_rst_core/sync[2]                |                2 |              4 |         2.00 |
+|  clk_core    | u_core/u_book/state[1]_i_1_n_0                           | u_rst_core/sync[2]                |                1 |              5 |         5.00 |
+|  clk_core    | u_core/u_book/entries_reg[0][order_ref]_i_81_n_0         |                                   |                1 |              8 |         8.00 |
+|  clk_core    | u_core/u_parser/msg_type_r[0]                            | u_rst_core/sync[2]                |                6 |              8 |         1.33 |
+|  clk_core    | u_core/u_book/proc_idx[7]_i_1_n_0                        | u_rst_core/sync[2]                |                3 |              8 |         2.67 |
+|  clk_core    | u_core/u_book/bid_lv[cnt][2]_i_1_n_0                     | u_rst_core/sync[2]                |                6 |              9 |         1.50 |
+|  clk_core    | u_core/u_lat/aw_addr_lat[8]_i_1_n_0                      | u_rst_core/sync[2]                |                1 |              9 |         9.00 |
+|  clk_core    | u_core/u_book/scan_addr[8]_i_1_n_0                       | u_rst_core/sync[2]                |                2 |              9 |         4.50 |
+|  clk_core    | u_core/u_book/ask_lv[cnt][2]_i_1_n_0                     | u_rst_core/sync[2]                |                5 |             10 |         2.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_64_127_0_6_i_1_n_0              |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_128_191_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_256_319_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_448_511_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_320_383_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_0_63_0_6_i_1_n_0                |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_192_255_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_line    | u_ingress/u_fifo/mem_reg_384_447_0_6_i_1_n_0             |                                   |                2 |             12 |         6.00 |
+|  clk_host    | u_axil_aw/u_fifo/mem_reg_0_3_0_8_i_1_n_0                 |                                   |                1 |             16 |        16.00 |
+|  clk_host    | u_axil_ar/u_fifo/mem_reg_0_3_0_8_i_1__0_n_0              |                                   |                1 |             16 |        16.00 |
+|  clk_core    | u_core/u_lat/ar_addr_lat[8]_i_1_n_0                      | u_rst_core/sync[2]                |                6 |             19 |         3.17 |
+|  clk_core    | u_core/u_risk/risk_valid_c                               | u_rst_core/sync[2]                |                4 |             31 |         7.75 |
+|  clk_core    | u_core/u_book/bid_lv[price][2][31]_i_1_n_0               | u_rst_core/sync[2]                |               14 |             32 |         2.29 |
+|  clk_core    | u_core/u_book/scan_ask_lv[size][3][31]_i_1_n_0           | u_rst_core/sync[2]                |               14 |             32 |         2.29 |
+|  clk_core    | u_core/u_book/scan_ask_lv[price][3][31]_i_1_n_0          | u_rst_core/sync[2]                |                8 |             32 |         4.00 |
+|  clk_core    | u_core/u_book/scan_ask_lv[price][2][31]_i_1_n_0          | u_rst_core/sync[2]                |                8 |             32 |         4.00 |
+|  clk_core    | u_core/u_book/scan_ask_lv[price][1][31]_i_1_n_0          | u_rst_core/sync[2]                |               16 |             32 |         2.00 |
+|  clk_core    | u_core/u_book/scan_ask_lv[price][0][31]_i_1_n_0          | u_rst_core/sync[2]                |               10 |             32 |         3.20 |
+|  clk_core    | u_core/u_lat/hist[21][31]_i_1_n_0                        | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[22][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[23][31]_i_1_n_0                        | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_lat/hist[24][31]_i_1_n_0                        | u_rst_core/sync[2]                |               29 |             32 |         1.10 |
+|  clk_core    | u_core/u_book/bid_lv[size][3][31]_i_1_n_0                | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_book/bid_lv[price][3][31]_i_1_n_0               | u_rst_core/sync[2]                |               14 |             32 |         2.29 |
+|  clk_core    | u_core/u_book/scan_bid_lv[price][1][31]_i_1_n_0          | u_rst_core/sync[2]                |               13 |             32 |         2.46 |
+|  clk_core    | u_core/u_book/bid_lv[price][1][31]_i_1_n_0               | u_rst_core/sync[2]                |               16 |             32 |         2.00 |
+|  clk_core    | u_core/u_book/bid_lv[price][0][31]_i_1_n_0               | u_rst_core/sync[2]                |               13 |             32 |         2.46 |
+|  clk_core    | u_core/u_lat/hist[25][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_book/ask_lv[size][3][31]_i_1_n_0                | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_book/ask_lv[price][3][31]_i_1_n_0               | u_rst_core/sync[2]                |               15 |             32 |         2.13 |
+|  clk_core    | u_core/u_book/ask_lv[price][2][31]_i_1_n_0               | u_rst_core/sync[2]                |               12 |             32 |         2.67 |
+|  clk_core    | u_core/u_book/ask_lv[price][1][31]_i_1_n_0               | u_rst_core/sync[2]                |               14 |             32 |         2.29 |
+|  clk_core    | u_core/u_book/ask_lv[price][0][31]_i_1_n_0               | u_rst_core/sync[2]                |               11 |             32 |         2.91 |
+|  clk_core    | u_core/u_lat/hist[26][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[18][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_parser/msg_type[7]_i_1_n_0                      | u_core/u_parser/price[31]_i_1_n_0 |                9 |             32 |         3.56 |
+|  clk_core    | u_core/u_lat/hist[0][31]_i_1_n_0                         | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[10][31]_i_1_n_0                        | u_rst_core/sync[2]                |               20 |             32 |         1.60 |
+|  clk_core    | u_core/u_lat/hist[11][31]_i_1_n_0                        | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_lat/hist[12][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[13][31]_i_1_n_0                        | u_rst_core/sync[2]                |               19 |             32 |         1.68 |
+|  clk_core    | u_core/u_lat/hist[14][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[15][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[16][31]_i_1_n_0                        | u_rst_core/sync[2]                |               28 |             32 |         1.14 |
+|  clk_core    | u_core/u_lat/hist[17][31]_i_1_n_0                        | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[20][31]_i_1_n_0                        | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[19][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_strategy/u_imbalance/cooldown_cnt[0]_i_1_n_0    | u_rst_core/sync[2]                |                4 |             32 |         8.00 |
+|  clk_core    | u_core/u_book/E[0]                                       | u_rst_core/sync[2]                |                5 |             32 |         6.40 |
+|  clk_core    | u_core/u_lat/hist[1][31]_i_1_n_0                         | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_book/scan_bid_lv[size][3][31]_i_1_n_0           | u_rst_core/sync[2]                |               16 |             32 |         2.00 |
+|  clk_core    | u_core/u_book/scan_bid_lv[price][3][31]_i_1_n_0          | u_rst_core/sync[2]                |               13 |             32 |         2.46 |
+|  clk_core    | u_core/u_book/scan_bid_lv[price][2][31]_i_1_n_0          | u_rst_core/sync[2]                |                9 |             32 |         3.56 |
+|  clk_core    | u_core/u_lat/hist[28][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_book/scan_bid_lv[price][0][31]_i_1_n_0          | u_rst_core/sync[2]                |                9 |             32 |         3.56 |
+|  clk_core    | u_core/u_lat/hist[39][31]_i_1_n_0                        | u_rst_core/sync[2]                |               27 |             32 |         1.19 |
+|  clk_core    | u_core/u_lat/hist[50][31]_i_1_n_0                        | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[4][31]_i_1_n_0                         | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[49][31]_i_1_n_0                        | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[48][31]_i_1_n_0                        | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[47][31]_i_1_n_0                        | u_rst_core/sync[2]                |               27 |             32 |         1.19 |
+|  clk_core    | u_core/u_lat/hist[46][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[45][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[44][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[43][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[42][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[41][31]_i_1_n_0                        | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[40][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[3][31]_i_1_n_0                         | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/s_axil_rdata[31]_i_1_n_0                    | u_rst_core/sync[2]                |               14 |             32 |         2.29 |
+|  clk_core    | u_core/u_lat/hist[38][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[37][31]_i_1_n_0                        | u_rst_core/sync[2]                |               20 |             32 |         1.60 |
+|  clk_core    | u_core/u_lat/hist[36][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[35][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[34][31]_i_1_n_0                        | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[33][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[32][31]_i_1_n_0                        | u_rst_core/sync[2]                |               19 |             32 |         1.68 |
+|  clk_core    | u_core/u_lat/hist[31][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[30][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[2][31]_i_1_n_0                         | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[29][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[27][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[7][31]_i_1_n_0                         | u_rst_core/sync[2]                |               26 |             32 |         1.23 |
+|  clk_core    | u_core/u_lat/hist[5][31]_i_1_n_0                         | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[60][31]_i_1_n_0                        | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_lat/hist[59][31]_i_1_n_0                        | u_rst_core/sync[2]                |               19 |             32 |         1.68 |
+|  clk_core    | u_core/u_lat/hist[61][31]_i_1_n_0                        | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_lat/hist[62][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[63][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[58][31]_i_1_n_0                        | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[6][31]_i_1_n_0                         | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_lat/hist[8][31]_i_1_n_0                         | u_rst_core/sync[2]                |               24 |             32 |         1.33 |
+|  clk_core    | u_core/u_lat/hist[9][31]_i_1_n_0                         | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/last_latency_cycles[31]_i_1_n_0             | u_rst_core/sync[2]                |                7 |             32 |         4.57 |
+|  clk_core    | u_core/u_lat/hist[57][31]_i_1_n_0                        | u_rst_core/sync[2]                |               22 |             32 |         1.45 |
+|  clk_core    | u_core/u_lat/hist[56][31]_i_1_n_0                        | u_rst_core/sync[2]                |               18 |             32 |         1.78 |
+|  clk_core    | u_core/u_lat/hist[55][31]_i_1_n_0                        | u_rst_core/sync[2]                |               19 |             32 |         1.68 |
+|  clk_core    | u_core/u_lat/hist[54][31]_i_1_n_0                        | u_rst_core/sync[2]                |               21 |             32 |         1.52 |
+|  clk_core    | u_core/u_lat/hist[53][31]_i_1_n_0                        | u_rst_core/sync[2]                |               19 |             32 |         1.68 |
+|  clk_core    | u_core/u_lat/hist[52][31]_i_1_n_0                        | u_rst_core/sync[2]                |               23 |             32 |         1.39 |
+|  clk_core    | u_core/u_lat/hist[51][31]_i_1_n_0                        | u_rst_core/sync[2]                |               25 |             32 |         1.28 |
+|  clk_core    | u_core/u_strategy/u_imbalance/decision_valid_i_1__0_n_0  | u_rst_core/sync[2]                |               14 |             38 |         2.71 |
+|  clk_core    | u_core/u_strategy/u_ofi/decision_valid_i_1_n_0           | u_rst_core/sync[2]                |               11 |             38 |         3.45 |
+|  clk_line    |                                                          | u_rst_line/sync[2]                |                9 |             40 |         4.44 |
+|  clk_core    | u_core/u_lat/s_axil_rvalid_reg_1                         |                                   |                3 |             40 |        13.33 |
+|  clk_core    | u_core/m_axis_tvalid_reg_0                               |                                   |                6 |             48 |         8.00 |
+|  clk_core    |                                                          |                                   |               21 |             65 |         3.10 |
+|  clk_core    | u_core/u_strategy/u_ofi/s1_valid                         |                                   |               16 |             68 |         4.25 |
+|  clk_core    | u_core/u_book/entries_reg[0][shares]_0_63_0_6_i_8_n_0    |                                   |               10 |             80 |         8.00 |
+|  clk_core    | u_core/u_book/entries_reg[0][shares]_128_191_0_6_i_1_n_0 |                                   |               10 |             80 |         8.00 |
+|  clk_core    | u_core/u_book/entries_reg[0][shares]_192_255_0_6_i_1_n_0 |                                   |               10 |             80 |         8.00 |
+|  clk_core    | u_core/u_book/entries_reg[0][shares]_64_127_0_6_i_1_n_0  |                                   |               10 |             80 |         8.00 |
+|  clk_core    | u_core/u_strategy/u_ofi/s1_valid                         | u_rst_core/sync[2]                |               23 |             89 |         3.87 |
+|  clk_core    | u_core/u_book/bid_lv[size][0][31]_i_1_n_0                | u_rst_core/sync[2]                |               45 |             96 |         2.13 |
+|  clk_core    | u_core/u_book/ask_lv[size][0][31]_i_1_n_0                | u_rst_core/sync[2]                |               36 |             96 |         2.67 |
+|  clk_core    | u_core/u_book/scan_bid_lv[size][0][31]_i_1_n_0           | u_rst_core/sync[2]                |               36 |             96 |         2.67 |
+|  clk_core    | u_core/u_book/scan_ask_lv[size][0][31]_i_1_n_0           | u_rst_core/sync[2]                |               31 |             96 |         3.10 |
+|  clk_host    |                                                          | u_rst_host/sync[2]                |               22 |             99 |         4.50 |
+|  clk_core    | u_core/u_book/ask_lv_reg[cnt][1]_rep_1[0]                | u_rst_core/sync[2]                |               47 |            162 |         3.45 |
+|  clk_core    | u_core/u_parser/msg_type[7]_i_1_n_0                      |                                   |               59 |            169 |         2.86 |
+|  clk_core    | u_core/u_book/m_type[0]                                  |                                   |               67 |            200 |         2.99 |
+|  clk_core    | u_core/u_book/empty_reg                                  | u_rst_core/sync[2]                |               53 |            205 |         3.87 |
+|  clk_core    |                                                          | u_rst_core/sync[2]                |              277 |            762 |         2.75 |
++--------------+----------------------------------------------------------+-----------------------------------+------------------+----------------+--------------+
+
+

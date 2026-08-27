@@ -1,0 +1,314 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{mdframed}
+\usepackage[colorlinks=true]{hyperref}
+
+% ── Palette (shared with implementation_results.tex / validation_roadmap.tex) ──
+\definecolor{hdrblue}{RGB}{10,60,140}
+\definecolor{accentteal}{RGB}{0,120,120}
+\definecolor{okgreen}{RGB}{20,110,40}
+\definecolor{passrowbg}{RGB}{220,245,225}
+\definecolor{badred}{RGB}{180,20,20}
+\definecolor{warnamber}{RGB}{180,90,0}
+\definecolor{pendrowbg}{RGB}{255,245,210}
+\definecolor{newbg}{RGB}{210,235,255}
+\definecolor{newtext}{RGB}{0,60,130}
+\definecolor{rulegray}{RGB}{130,130,130}
+\definecolor{tablegray}{RGB}{245,246,248}
+
+\hypersetup{linkcolor=hdrblue, urlcolor=accentteal,
+  pdftitle={FPGA Tick-to-Trade: Live Execution Issues}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\fixed}{\textcolor{okgreen}{\textbf{RESOLVED}}}
+\newcommand{\mitig}{\textcolor{warnamber}{\textbf{MITIGATED}}}
+\newcommand{\openi}{\textcolor{badred}{\textbf{OPEN}}}
+\newcommand{\bydesign}{\textcolor{accentteal}{\textbf{BY DESIGN}}}
+\newcommand{\sectionrule}{\vspace{2pt}\textcolor{rulegray}{\rule{\linewidth}{0.8pt}}\vspace{2pt}}
+
+\newmdenv[linecolor=newtext, backgroundcolor=newbg, linewidth=1.2pt,
+  leftmargin=0pt, rightmargin=0pt, innerleftmargin=8pt, innerrightmargin=8pt,
+  innertopmargin=6pt, innerbottommargin=6pt, skipabove=6pt, skipbelow=6pt]{keybox}
+
+% Issue block: \begin{issue}{N}{Title}{STATUS} ... \end{issue}
+\newmdenv[linecolor=rulegray, backgroundcolor=tablegray, linewidth=0.8pt,
+  leftmargin=0pt, rightmargin=0pt, innerleftmargin=8pt, innerrightmargin=8pt,
+  innertopmargin=5pt, innerbottommargin=5pt, skipabove=5pt, skipbelow=5pt]{issuebox}
+
+\begin{document}
+
+{\LARGE\bfseries\color{hdrblue} FPGA Tick-to-Trade \textendash{} Live Execution Issues}%
+\hfill{\small\color{rulegray} 17 June 2026}\\[-2pt]
+{\large\color{accentteal} What broke when the strategy met a real broker}
+
+\textcolor{hdrblue}{\rule{\linewidth}{2pt}}
+
+\begin{keybox}
+{\large\bfseries\color{newtext} Context}
+
+\smallskip
+This is Phase~4 (live, shadow/paper mode) of the validation roadmap. The
+FPGA-equivalent software strategy (\texttt{host/strategy\_sw.py}, bit-identical
+to \texttt{strategy\_imbalance.sv}) was driven from a \emph{real} market-data
+feed and routed to a \emph{real} paper broker. The pipeline ran end-to-end and
+placed live paper orders --- but only after a series of integration and
+real-market-microstructure issues that simulation and dry-run could never
+surface. This document catalogues every one of them.
+
+\smallskip
+\textbf{Feed:} Alpaca free tier (real-time IEX equities + paper account),
+chosen over IBKR because no IB Gateway desktop app was installed on the VM.
+\textbf{Symbol:} AAPL. \textbf{Date of runs:} 17 June 2026, US market hours.
+\end{keybox}
+
+% ── Summary table ─────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Issue Summary}
+\vspace{4pt}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}c>{\raggedright\arraybackslash}X l l@{}}
+\toprule
+\textbf{\#} & \textbf{Issue} & \textbf{Category} & \textbf{Status} \\
+\midrule
+1 & No retail access to raw NASDAQ ITCH         & Architectural & \bydesign \\
+2 & IB Gateway absent on VM                      & Environment   & \fixed   \\
+3 & Alpaca free tier: one concurrent connection  & Feed limit    & \mitig   \\
+4 & IEX quotes flow only in market hours; lulls  & Feed behavior & \bydesign\\
+5 & Buffered output \& hung websocket shutdown   & Tooling       & \fixed   \\
+6 & Wash-trade rejections (self-crossing orders) & Microstructure& \fixed   \\
+7 & Insufficient quantity / position drift       & Order mgmt    & \mitig   \\
+8 & Fat-finger guard halts after price drift     & Risk model    & \mitig   \\
+9 & Signal skew / position pinned at limit       & Strategy tune & \mitig   \\
+10& API keys shared in plaintext                 & Security      & \openi   \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\sectionrule
+
+% ── Detailed issues ───────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} Detailed Findings}
+
+\begin{issuebox}
+\textbf{\#1 \quad No retail access to raw NASDAQ TotalView-ITCH} \hfill \bydesign\\
+\textbf{Symptom:} The FPGA \texttt{itch\_parser.sv} expects the binary NASDAQ
+ITCH feed, which is not available to a retail account (requires exchange
+membership / colocation).\\
+\textbf{Root cause:} ITCH is an exchange-direct product; retail brokers expose
+only normalized top-of-book / depth APIs.\\
+\textbf{Resolution:} Accepted as a project premise. The live path feeds the
+\emph{software} strategy mirror, not \texttt{itch\_parser.sv}. The FPGA's
+205\,ns tick-to-trade stays a \emph{measured compute benchmark} shown alongside
+the live feed --- never claimed to be in the retail critical path. Only paid
+Databento offers real ITCH binary if true hardware-parsing is ever wanted.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#2 \quad IB Gateway not installed on the VM} \hfill \fixed\\
+\textbf{Symptom:} \texttt{live\_feed.py --symbol AAPL} could not connect; nothing
+listening on port 4002/7497. Filesystem search found no \texttt{\~{}/Jts} install,
+only the unrelated \texttt{ibus} input daemon.\\
+\textbf{Root cause:} The IBKR path needs the IB Gateway \emph{desktop} app
+running and logged into a paper account; it was never installed here (there is
+no web login that opens the API socket).\\
+\textbf{Resolution:} Switched the live feed to Alpaca, which needs only an API
+key --- no desktop gateway, no socket port. Added an \texttt{--alpaca} mode to
+\texttt{live\_feed.py} reusing the identical \texttt{\_process()} strategy/risk core.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#3 \quad Alpaca free tier allows one concurrent data connection} \hfill \mitig\\
+\textbf{Symptom:} A second \texttt{StockDataStream} opened while the 5-minute soak
+was still streaming would be refused.\\
+\textbf{Root cause:} Free-tier websocket connection limit (1).\\
+\textbf{Mitigation:} Run feed sessions strictly sequentially; never overlap a
+threshold experiment, soak, or execution run with another live stream.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#4 \quad IEX quotes flow only during market hours; quiet lulls} \hfill \bydesign\\
+\textbf{Symptom:} A threshold experiment at 5.0\(\times\) recorded \textbf{0 ticks}
+in its window --- not because of the threshold but because quotes briefly dried
+up.\\
+\textbf{Root cause:} The free IEX feed only streams 09:30--16:00 ET, and even
+then a single symbol can go quiet for seconds at a time.\\
+\textbf{Resolution:} Interpret 0-tick windows as data lulls, not strategy
+behavior. For off-hours plumbing tests use \texttt{--simulate} (synthetic
+continuous quotes).
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#5 \quad Buffered output and a hung websocket shutdown} \hfill \fixed\\
+\textbf{Symptom:} The first live run appeared to ``hang'' and produced no log
+output; the process outlived its requested duration.\\
+\textbf{Root cause:} (a) stdout was block-buffered through the pipe, so lines
+never flushed before the kill; (b) the websocket loop did not honor the
+duration cleanly on close.\\
+\textbf{Resolution:} Run with \texttt{python -u} (unbuffered), bound the session
+with \texttt{asyncio.wait\_for(stream.\_run\_forever(), timeout=duration)}, and
+wrap external invocations in a shell \texttt{timeout -k} as a hard backstop. The
+session summary (\texttt{\_report()}) now prints reliably at the end.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#6 \quad Wash-trade rejections --- the strategy crosses its own orders} \hfill \fixed\\
+\textbf{Symptom:} 78 of 112 order attempts in the execution run were rejected
+with Alpaca error \texttt{40310000}: \emph{``potential wash trade detected\dots
+sell order exists, buy limit price should be less than existing sell limit
+price.''}\\
+\textbf{Root cause:} The imbalance strategy fires BUY then SELL (and vice-versa)
+within milliseconds. Each order is an aggressive limit (BUY lifts the ask, SELL
+hits the bid), so a new order would trade against the account's \emph{own}
+resting limit order on the opposite side --- a wash trade, which the broker
+blocks by market-integrity rule.\\
+\textbf{Fix (implemented):} \texttt{\_cancel\_opposite()} cancels our still-working
+orders on the opposite side before each submit (cancel-on-new). In a
+re-run on the same BUY/SELL-mixed regime that previously produced 78 rejects,
+wash-trade rejections dropped to \textbf{0} (34 cancel-on-new actions fired).
+A strategy/execution-layer fix, independent of the FPGA datapath.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#7 \quad Insufficient quantity available for a SELL} \hfill \mitig\\
+\textbf{Symptom:} \texttt{40310000}: \emph{``insufficient qty available for order
+(requested: 100, available: 50)\dots held\_for\_orders: 240.''}\\
+\textbf{Root cause:} The strategy issues SELLs sized by imbalance without
+reconciling against the actual held position and shares already committed to
+resting orders. The hardware-mirrored risk check enforces a \emph{net position}
+limit but not per-order inventory availability at the broker.\\
+\textbf{Partial fix (implemented):} an inventory clamp sizes each order to the
+net-position capacity left in its direction (clamp to 0 = skip), so the strategy
+trades up to the cap and stops instead of overshooting or having whole orders
+rejected. This cut insufficient-qty failures from many to \textbf{4} in the
+re-run.\\
+\textbf{Diagnosis:} the first clamp used an \emph{optimistic local} position from
+\texttt{record\_fill()} (assumes full, instant fills). Real broker fills drift
+from it --- a run ended at $+1{,}195$ shares while the local count read the
+1{,}000 cap, and that local-vs-broker divergence caused the residual 4
+failures.\\
+\textbf{Fix (implemented):} \texttt{\_sync\_position()} reads the broker's actual
+signed position for the symbol (\texttt{get\_open\_position}; 404 $\Rightarrow$
+flat) and overwrites the risk guard's count before every order, so the clamp
+sizes against reality. In the verification run this fired 7 position syncs and
+brought insufficient-qty failures to \textbf{0}. Trades one HTTP read of latency
+on the order path (irrelevant vs.\ the ms-scale network RTT) for correctness.
+Not an RTL bug.\\
+\textbf{Heavy-burst facets (found on re-test) + further fixes:} a heavy
+\emph{one-sided} burst (193 SELL / 10 BUY, 203 signals) exposed two more
+resting-order pathologies the calm runs never hit --- (i) dozens of same-side
+limit orders rested and the broker locked their shares
+(\texttt{held\_for\_orders}), rejecting further orders; (ii) those stale resting
+orders filled \emph{behind} new ones, overshooting the cap ($-1{,}110$ vs
+$-1{,}000$). Fixes: switch to \textbf{IOC} (immediate-or-cancel) orders so they
+never rest (no locked shares, deterministic per-order position change); and a
+\textbf{no-zero-cross clamp} (sell at most the long held / buy at most the short
+held in one order, extend in-direction only to the cap) which also keeps SELL
+size $\le$ held inventory under IOC partial fills. The clamp is unit-verified
+(8/8 cases: never crosses zero, always respects cap). \emph{Live re-verification
+of the combined IOC + no-cross stack is pending the next market session --- the
+re-test window hit the 16:00 ET close (0 ticks).}\\
+\textbf{Residue:} because the aggressive marketable limits filled immediately
+(no orders were left resting), the run ended flat-less --- a \textbf{net
+$-150$-share AAPL short} (avg \$297.32). It was flattened afterwards with a
+single closing market order; account returned to 0 positions / 0 open orders.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#8 \quad Fat-finger guard halts trading after price drift} \hfill \mitig\\
+\textbf{Symptom:} During the 5-minute soak, 1{,}327 orders were blocked with
+\texttt{fat\_finger: price out of band} once AAPL drifted from \$296.46 (the
+seed) to \$297+.\\
+\textbf{Root cause:} The reference price is seeded once from the first valid mid
+and never updated --- a faithful mirror of \texttt{risk\_check.sv}, whose price
+band ($\pm$\$0.50, \(\approx\)0.33\%) is measured against a \emph{fixed}
+reference. Any sustained move past the band trips every subsequent order.\\
+\textbf{Mitigation \& candidate enhancement:} expected behavior for the current
+RTL; documented as such. A future RTL/SW enhancement would track the reference
+(e.g.\ slow EMA of mid) or express the band relative to the live mid, so the
+guard catches genuine fat-finger spikes without halting on normal drift.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#9 \quad Signal skew and position pinned at the limit} \hfill \mitig\\
+\textbf{Symptom:} On a lopsided book the strategy fired 137 BUY vs 10 SELL and
+hit the \texttt{MAX\_POSITION} = 1000-share cap almost immediately; later soak ran
+1{,}150 BUY vs 185 SELL.\\
+\textbf{Root cause:} At the default 1.5\(\times\) threshold the trigger is easily
+met, so a persistently imbalanced book produces one-sided signals; the risk cap
+then correctly stops further accumulation.\\
+\textbf{Mitigation:} \texttt{--threshold} tuning confirmed --- raising it
+(3.0\(\times\), 5.0\(\times\)) yields fewer, more selective, more two-sided
+signals. Pick the threshold to match the desired trade rate for the demo.
+\end{issuebox}
+
+\begin{issuebox}
+\textbf{\#10 \quad API keys shared in plaintext} \hfill \openi\\
+\textbf{Symptom:} Alpaca paper API key + secret were pasted into the chat
+session.\\
+\textbf{Root cause:} Expedient during setup. Paper keys cannot move real money,
+but they grant full control of the paper account and data subscription.\\
+\textbf{Recommended fix:} regenerate the key pair in the Alpaca dashboard; going
+forward pass credentials only via environment variables
+(\texttt{ALPACA\_API\_KEY} / \texttt{ALPACA\_SECRET\_KEY}), never in code or chat.
+\end{issuebox}
+
+\sectionrule
+
+% ── What worked ───────────────────────────────────────────────────────────────
+{\large\bfseries\color{hdrblue} What Worked --- Milestone Achieved}
+
+\begin{keybox}
+Despite the issues above, the end-to-end objective was met: \textbf{live IEX
+quotes \(\rightarrow\) FPGA-equivalent strategy \(\rightarrow\) hardware-mirrored
+pre-trade risk \(\rightarrow\) real paper orders on Alpaca account PA3812EGI0G4.}
+
+\smallskip
+\begin{itemize}[leftmargin=1.4em,topsep=2pt,itemsep=1pt]
+\item 5-minute soak: 5{,}146 ticks, 1{,}335 signals, captured to
+      \texttt{reports/soak\_aapl.log}.
+\item Execution run: \textbf{34 paper orders placed} (real order IDs / status
+      \texttt{PENDING\_NEW}); 78 rejected for the microstructure reasons above.
+\item Measured compute latency: \textbf{FPGA 205\,ns vs.\ software host
+      \(\approx\)9--10\,\(\mu\)s mean} \(\Rightarrow\) \(\approx\)45\(\times\)
+      faster on hardware (live order path then adds network RTT of tens of ms ---
+      the gap the project exists to illustrate).
+\end{itemize}
+\end{keybox}
+
+\sectionrule
+
+{\large\bfseries\color{hdrblue} Next Actions}
+\begin{enumerate}[leftmargin=1.6em,topsep=2pt,itemsep=1pt]
+\item \textcolor{okgreen}{\textbf{Done:}} order-management layer --- cancel-on-new
+      (cleared \#6, wash trades $\to$ 0), broker-position sync, IOC orders, and a
+      no-zero-cross inventory clamp (unit-verified) for \#7.
+\item \textbf{Pending:} live re-verify the IOC + no-cross stack next market
+      session (re-test hit the 16:00 ET close). Let the queued SELL-74 auto-flatten
+      at next open.
+\item \textcolor{okgreen}{\textbf{Done:}} flattened the $-150$-share AAPL short
+      left by the execution run (the orders filled immediately rather than
+      resting); account is back to 0 positions / 0 open orders.
+\item Rotate the Alpaca API keys (\#10).
+\item Feed \texttt{reports/soak\_aapl.log} into
+      \texttt{notebooks/latency\_histogram.ipynb} for the live-data dashboard.
+\item (Stretch) reference-tracking price band (\#8) in RTL + software mirror.
+\end{enumerate}
+
+\vfill
+{\small\color{rulegray} Companion to \texttt{validation\_roadmap.tex} and
+\texttt{implementation\_results.tex}. Build: \texttt{pdflatex
+live\_execution\_issues.tex}.}
+
+\end{document}
