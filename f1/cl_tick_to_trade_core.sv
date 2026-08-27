@@ -63,6 +63,7 @@ module cl_tick_to_trade_core #(
 
     tick_to_trade_top u_core (
         .clk(clk), .rst_n(rst_n), .halt(halt),
+        .strat_sel(2'd0),                 // default: imbalance taker (CSR-selectable later)
         .risk_reject(risk_reject), .risk_reason(risk_reason),
         .s_axis_tdata(s_axis_tdata), .s_axis_tvalid(s_axis_tvalid),
         .s_axis_tready(s_axis_tready), .s_axis_tlast(s_axis_tlast),

@@ -26,6 +26,7 @@ CLK_PERIOD_NS = 5   # 200 MHz
 async def reset(dut, cycles: int = 8):
     dut.rst_n.value         = 0
     dut.halt.value          = 0   # kill switch off
+    dut.strat_sel.value     = 0   # imbalance taker (default; preserves prior behavior)
     dut.s_axis_tvalid.value = 0
     dut.s_axis_tdata.value  = 0
     dut.s_axis_tlast.value  = 0
